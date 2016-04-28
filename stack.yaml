@@ -1,0 +1,10 @@
+resolver: lts-5.5
+
+packages:
+- .
+
+extra-deps: []
+
+# absolute path
+extra-include-dirs: []
+# - native

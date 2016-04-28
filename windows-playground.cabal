@@ -1,0 +1,94 @@
+name:                windows-playground
+version:             0.0.0
+synopsis:            TODO
+description:         TODO
+homepage:            http://github.com/sboosali/windows-playground#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Spiros Boosalis
+maintainer:          samboosalis@gmail.com
+copyright:           2015 Spiros Boosalis
+category:            Development
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+extra-source-files:
+ native/windows_cconv.h
+ native/Clipboard.h
+ native/Clipboard.cpp
+
+source-repository head
+  type:     git
+  location: https://github.com/sboosali/windows-playground
+
+library
+ hs-source-dirs:      library
+ default-language:    Haskell2010
+ ghc-options:         -Wall
+
+-- c-source-dirs:       native
+ cc-options:         -Wall
+ -- -v3 -Inative
+-- c-sources: native/Clipboard.cpp
+
+ include-dirs:     native
+ includes:         native/Clipboard.h
+ install-includes: native/Clipboard.h
+ -- extra-libraries: 
+
+ -- libraries:
+ -- ld-options: -fno-PIC
+ ---municode
+ -- extra-libraries:      "user32", "gdi32", "winmm", "advapi32", "shell32", "shfolder"
+
+ exposed-modules:
+  Playground
+  Playground.Main
+  Playground.Bindings
+
+ build-depends:
+    base >=4.7 && <5
+--  , lens
+
+
+-- $ stack exec windows-playground
+executable windows-playground
+ hs-source-dirs:      executables
+ main-is:             Main.hs
+ default-language:    Haskell2010
+ ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+ build-depends:
+    base
+  , windows-playground
+
+
+-- $ stack test windows-playground
+test-suite doctest
+ hs-source-dirs:      tests
+ main-is:             DocTest.hs
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+ ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+ build-depends:
+  base
+  , windows-playground
+  , doctest ==0.10.*
+
+-- $ stack test windows-playground
+test-suite unittest
+ hs-source-dirs:      tests
+ main-is:             UnitTest.hs
+ type:                exitcode-stdio-1.0
+ default-language:    Haskell2010
+ ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
+
+ other-modules:
+  Playground.Test
+
+ build-depends:
+  base
+  , windows-playground
+  , hspec ==2.2.*
+  , QuickCheck ==2.8.*
