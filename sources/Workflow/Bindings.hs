@@ -8,15 +8,9 @@ import Foreign.C.String
 #include "calling_convention.h"
 
 
-{-|
+getClipboard :: IO String
+getClipboard = c_GetClipboard >>= peekCWString
 
->>> _Playground
-"Playground"
-
--}
-_Workflow :: IO String
-_Workflow = c_Workflow >>= peekCString
-
-foreign import CALLING_CONVENTION safe "Workflow.h Workflow"
- c_Workflow :: IO CString
-
+foreign import CALLING_CONVENTION unsafe "Workflow.h GetClipboard"
+ --foreign import WINDOWS_CCONV unsafe "Clipboard.h _GetClipboard"
+ c_GetClipboard :: IO CWString

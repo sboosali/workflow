@@ -3,5 +3,4 @@ module Workflow.Main where
 import Workflow.Bindings
 
 main = do
- print =<< _Workflow
-
+ print =<< getClipboard

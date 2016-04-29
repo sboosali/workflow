@@ -1,3 +1,4 @@
+#include <windows.h>
+#include <string.h>
 
-const char* Workflow();
-
+LPCTSTR GetClipboard();
