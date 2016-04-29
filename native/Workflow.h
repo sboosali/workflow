@@ -1,10 +1,15 @@
 #include <windows.h>
 #include <string.h>
 
-LPCTSTR GetClipboard();
-void SetClipboard(LPCTSTR);
+WORD KEYEVENTF_KEYDOWN = 0;
 
-UINT InsertUnicodeChar(const wchar_t c);
+LPCTSTR GetClipboard();
+void    SetClipboard(LPCTSTR);
+
+UINT SendUnicodeChar(const wchar_t);
+
+UINT PressKeyDown(WORD);
+UINT PressKeyUp(WORD);
 
 HINSTANCE OpenApplication(LPCTSTR);
 HINSTANCE OpenUrl(LPCTSTR);

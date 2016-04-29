@@ -22,14 +22,16 @@ library
  hs-source-dirs:      sources
  default-language:    Haskell2010
  ghc-options:         -Wall
+ default-extensions:  LambdaCase
 
- c-sources:       native/Workflow.c
+ c-sources:        native/Workflow.c
  includes:         native/Workflow.h
  install-includes: native/Workflow.h
  include-dirs:    native
 
  exposed-modules:
   Workflow
+  Workflow.Windows.Types
   Workflow.Main
   Workflow.Bindings
 
@@ -79,4 +81,3 @@ test-suite unittest
   , workflow-windows
   , hspec ==2.2.*
   , QuickCheck ==2.8.*
-

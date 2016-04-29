@@ -2,7 +2,7 @@
 #define UNICODE
 
 // package
-//#include "Workflow.h"
+#include "Workflow.h"
 
 // windows
 #include <windows.h>
@@ -45,7 +45,7 @@ void SetClipboard(LPCTSTR output) {
 	CloseClipboard();
 }
 
-UINT InsertUnicodeChar(const wchar_t c) {
+UINT SendUnicodeChar(const wchar_t c) {
 	UINT successes = 0;
 
 	INPUT i;
@@ -61,6 +61,41 @@ UINT InsertUnicodeChar(const wchar_t c) {
 	return successes;
 }
 
+/*
+
+*/
+UINT PressKeyDown(WORD key) {
+	INPUT i;
+	i.type = INPUT_KEYBOARD;
+	i.ki.wScan = 0;
+	i.ki.time = 0;
+	i.ki.dwExtraInfo = 0;
+
+	i.ki.wVk = key;
+	i.ki.dwFlags = KEYEVENTF_KEYDOWN;
+	return SendInput(1, &i, sizeof(INPUT));
+}
+
+/*
+
+*/
+UINT PressKeyUp(WORD key) {
+	INPUT i;
+	i.type = INPUT_KEYBOARD;
+	i.ki.wScan = 0;
+	i.ki.time = 0;
+	i.ki.dwExtraInfo = 0;
+
+	i.ki.wVk = key;
+	i.ki.dwFlags = KEYEVENTF_KEYUP;
+	return SendInput(1, &i, sizeof(INPUT));
+}
+
+/*
+
+uses the PATH?
+
+*/
 HINSTANCE OpenApplication(LPCTSTR app) {
 	return ShellExecute(NULL, L"open", app, NULL, NULL, SW_SHOW);
 }
