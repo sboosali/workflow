@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Workflow.Main where
-import Workflow.Bindings
-import Workflow.Windows.Types
+module Workflow.Windows.Main where
+import Workflow.Windows
 
 main :: IO ()
 main = do

@@ -1,6 +1,5 @@
-module Workflow.Test where
-import Workflow
+module Workflow.Windows.Test where
+import Workflow.Windows
 
 main = do
  print "Workflow"
-

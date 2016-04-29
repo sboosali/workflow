@@ -27,13 +27,13 @@ library
  c-sources:        native/Workflow.c
  includes:         native/Workflow.h
  install-includes: native/Workflow.h
- include-dirs:    native
+ include-dirs:     native
 
  exposed-modules:
-  Workflow
+  Workflow.Windows
   Workflow.Windows.Types
-  Workflow.Main
-  Workflow.Bindings
+  Workflow.Windows.Bindings
+  Workflow.Windows.Main
 
  build-depends:
     base >=4.7 && <5

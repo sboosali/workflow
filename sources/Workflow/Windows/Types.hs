@@ -33,7 +33,7 @@ newtype URL = URL String
 
 data VK
  = VK_CONTROL
- 
+
  | VK_0
  | VK_1
  | VK_2

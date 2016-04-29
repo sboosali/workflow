@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-import qualified Workflow.Main
+import qualified Workflow.Windows.Main
 
 -- stack build && stack exec workflow-windows
-main = Workflow.Main.main
+main = Workflow.Windows.Main.main

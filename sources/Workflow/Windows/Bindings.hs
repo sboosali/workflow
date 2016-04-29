@@ -4,11 +4,10 @@
 all derived in Haskell
 
 -}
-module Workflow.Bindings where
+module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
 
 import Foreign.C
-import Data.Word
 import Data.Char
 import Data.Foldable
 import Control.Concurrent
