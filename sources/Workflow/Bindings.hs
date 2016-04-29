@@ -17,6 +17,8 @@ type WCHAR_T = CWchar
 
 type UINT = Word32
 
+-- foreign import CALLING_CONVENTION unsafe "Workflow.h "
+
 
 getClipboard :: IO String
 getClipboard = c_GetClipboard >>= peekCWString
@@ -49,3 +51,23 @@ insertChar c = do
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h InsertUnicodeChar"
  c_InsertUnicodeChar :: WCHAR_T -> IO UINT
+
+
+{-|
+TODO windows "apps"
+launchApplication :: String -> IO ()
+launchApplication s = withCWString s c_LaunchApplication
+-}
+
+openApplication :: String -> IO ()
+openApplication s = withCWString s c_OpenApplication
+
+foreign import CALLING_CONVENTION unsafe "Workflow.h OpenApplication"
+ c_OpenApplication :: CWString -> IO ()
+
+
+openUrl :: String -> IO ()
+openUrl s = withCWString s c_OpenUrl
+
+foreign import CALLING_CONVENTION unsafe "Workflow.h OpenUrl"
+ c_OpenUrl :: CWString -> IO ()

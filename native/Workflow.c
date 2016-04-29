@@ -60,3 +60,11 @@ UINT InsertUnicodeChar(const wchar_t c) {
 
 	return successes;
 }
+
+HINSTANCE OpenApplication(LPCTSTR app) {
+	return ShellExecute(NULL, L"open", app, NULL, NULL, SW_SHOW);
+}
+
+HINSTANCE OpenUrl(LPCTSTR url) {
+	return ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
+}

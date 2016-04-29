@@ -5,3 +5,6 @@ LPCTSTR GetClipboard();
 void SetClipboard(LPCTSTR);
 
 UINT InsertUnicodeChar(const wchar_t c);
+
+HINSTANCE OpenApplication(LPCTSTR);
+HINSTANCE OpenUrl(LPCTSTR);
