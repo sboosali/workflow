@@ -91,6 +91,48 @@ UINT PressKeyUp(WORD key) {
 	return SendInput(1, &i, sizeof(INPUT));
 }
 
+UINT ClickMouseAt(int x, int y, int n, DWORD buttonDown, DWORD buttonUp) {
+	UINT successes = 0;
+
+		//TODO? SendMessage(NULL, BM_CLICK, 0, 0);
+
+	const double XSCALEFACTOR = 65535 / (GetSystemMetrics(SM_CXSCREEN) - 1);
+	const double YSCALEFACTOR = 65535 / (GetSystemMetrics(SM_CYSCREEN) - 1);
+
+	POINT cursorPos;
+	GetCursorPos(&cursorPos);
+
+	double cx = cursorPos.x * XSCALEFACTOR;
+	double cy = cursorPos.y * YSCALEFACTOR;
+
+	//TODO why SCALEFACTOR?
+	double nx = x * XSCALEFACTOR;
+	double ny = y * YSCALEFACTOR;
+
+	INPUT i = { 0 };
+	i.type = INPUT_MOUSE;
+
+	i.mi.dx = (LONG)nx;
+	i.mi.dy = (LONG)ny;
+
+	i.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | buttonDown | buttonUp;
+
+	// click mouse down and then up
+	for (int j = 0; j < n; j++) {
+		successes += SendInput(1, &i, sizeof(INPUT));
+	}
+
+	i.mi.dx = (LONG)cx;
+	i.mi.dy = (LONG)cy;
+
+	i.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE;
+
+	// move mouse back
+	successes += SendInput(1, &i, sizeof(INPUT));
+
+	return successes;
+}
+
 /*
 
 uses the PATH?

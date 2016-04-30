@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, RecordWildCards #-}
+{-# LANGUAGE ForeignFunctionInterface, CPP, ViewPatterns, RecordWildCards #-}
 {-|
 
 all derived in Haskell
@@ -11,6 +11,8 @@ import Foreign.C
 import Data.Char
 import Data.Foldable
 import Control.Concurrent
+import Control.Arrow
+import Numeric.Natural
 
 #include "calling_convention.h"
 
@@ -96,36 +98,65 @@ pressKeyUp Keyboard{..} = c_PressKeyUp . fromKey
 foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyUp"
  c_PressKeyUp :: WORD -> IO ()
 
+
+--clickMouse :: Natural -> IO ()
+
+--moveMouseTo ::
+--moveMouseTo =
+
+clickMouseAt :: Mouse MOUSEEVENTF -> Point -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
+clickMouseAt Mouse{..} Point{..} times down up
+ = c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (fromGizmo down) (fromGizmo up)
+
+foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
+  c_ClickMouseAt :: Int -> Int -> Int -> DWORD -> DWORD -> IO ()
+
+{-|
+
+truncates large integral types.
+
+-}
+toInt :: (Integral a) => a -> Int
+toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
+
+
 {-|
 TODO windows "apps"
 launchApplication :: String -> IO ()
 launchApplication s = withCWString s c_LaunchApplication
 -}
 
-openApplication :: Application -> IO ()
+openApplication :: Application -> IO () -- launchApplication?
 openApplication (Application s) = withCWString s c_OpenApplication
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h OpenApplication"
  c_OpenApplication :: CWString -> IO ()
 
 
-openUrl :: URL -> IO ()
+openUrl :: URL -> IO () -- visitURL?
 openUrl (URL s) = withCWString s c_OpenUrl
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h OpenUrl"
  c_OpenUrl :: CWString -> IO ()
 
 
+{-| a raw virtual keyboard.
+
+-}
+identityKeyboard :: Keyboard WORD
+identityKeyboard = Keyboard id
+
 {-|
 
 virtual key codes from @<WinUser.h>@.
 
-
-
 -}
-vkKeyboard :: Keyboard VK
-vkKeyboard = Keyboard{..} where
- fromKey = \case
+windowsKeyboard :: Keyboard VK
+windowsKeyboard = Keyboard{..} where
+ fromKey = encodeVK
+
+encodeVK :: VK -> WORD
+encodeVK = \case
 
     VK_BACK           -> 0x08
     VK_TAB            -> 0x09
@@ -171,7 +202,6 @@ vkKeyboard = Keyboard{..} where
     VK_HELP           -> 0x2F
 
     -- VK_0 - VK_9 are the same as ASCII '0' - '9' (0x30 - 0x39)
-
     VK_0              -> 0x30
     VK_1              -> 0x31
     VK_2              -> 0x32
@@ -275,7 +305,6 @@ vkKeyboard = Keyboard{..} where
     -- VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
     -- Used only as parameters to GetAsyncKeyState() and GetKeyState().
     -- No other API or message will distinguish left and right keys in this way.
-
     VK_LSHIFT         -> 0xA0
     VK_RSHIFT         -> 0xA1
     VK_LCONTROL       -> 0xA2
@@ -352,3 +381,52 @@ vkKeyboard = Keyboard{..} where
     VK_NONAME         -> 0xFC
     VK_PA1            -> 0xFD
     VK_OEM_CLEAR      -> 0xFE
+
+{-| a raw virtual mouse.
+
+-}
+identityMouse :: Mouse DWORD
+identityMouse = Mouse id
+
+windowsMouse :: Mouse MOUSEEVENTF
+windowsMouse = Mouse{..} where
+  fromGizmo = encodeMOUSEEVENTF
+
+{-
+windowsWheel :: Mouse MouseWheel
+windowsWheel = Mouse{..} where
+   fromGizmo =
+
+windowsButton :: Mouse MouseButton
+windowsButton = Mouse{..} where
+  fromGizmo = \case
+-}
+
+encodeMOUSEEVENTF :: MOUSEEVENTF -> DWORD
+encodeMOUSEEVENTF =  \case -- TODO pattern?
+    MOUSEEVENTF_MOVE        -> 0x0001
+    MOUSEEVENTF_LEFTDOWN    -> 0x0002
+    MOUSEEVENTF_LEFTUP      -> 0x0004
+    MOUSEEVENTF_RIGHTDOWN   -> 0x0008
+    MOUSEEVENTF_RIGHTUP     -> 0x0010
+    MOUSEEVENTF_MIDDLEDOWN  -> 0x0020
+    MOUSEEVENTF_MIDDLEUP    -> 0x0040
+    MOUSEEVENTF_XDOWN       -> 0x0080
+    MOUSEEVENTF_XUP         -> 0x0100
+    MOUSEEVENTF_WHEEL                -> 0x0800
+    MOUSEEVENTF_HWHEEL               -> 0x01000
+    MOUSEEVENTF_MOVE_NOCOALESCE      -> 0x2000
+    MOUSEEVENTF_VIRTUALDESK          -> 0x4000
+    MOUSEEVENTF_ABSOLUTE             -> 0x8000
+
+encodeMouseWheel :: MouseWheel -> MOUSEEVENTF
+encodeMouseWheel = \case
+ VerticalWheel   -> MOUSEEVENTF_WHEEL
+ HorizontalWheel -> MOUSEEVENTF_HWHEEL
+
+encodeMouseButton :: MouseButton -> (MOUSEEVENTF,MOUSEEVENTF)
+encodeMouseButton = \case
+ LeftButton   -> (MOUSEEVENTF_LEFTDOWN   , MOUSEEVENTF_LEFTUP)
+ MiddleButton -> (MOUSEEVENTF_MIDDLEDOWN , MOUSEEVENTF_MIDDLEUP)
+ RightButton  -> (MOUSEEVENTF_RIGHTDOWN  , MOUSEEVENTF_RIGHTUP)
+ XButton      -> (MOUSEEVENTF_XDOWN      , MOUSEEVENTF_XUP)

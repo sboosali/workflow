@@ -13,9 +13,21 @@ type WCHAR_T = CWchar
 
 type UINT = Word32 -- CUInt
 
-type WORD = Word -- platform-dependent size, in both C and Haskell
+type WORD = Word16
+
+type DWORD = Word32
 
 type LONG = Int64 -- CLong
+
+-- void* (in both Haskell and C)
+newtype HWND = HWND (Ptr ())
+-- type HWND = Ptr ()
+
+{-| Keyboard/Mouse as union of like all possible virtual keyboards/mice?
+that's just an int.
+or intersection, as the point of Workflow is cross-platform actions.
+
+-}
 
 {-|
 
@@ -23,10 +35,61 @@ takes an enum to a virtual key code.
 
 -}
 data Keyboard key = Keyboard
- { fromKey      :: key      -> WORD
+ { fromKey      :: key      -> WORD -- CULong
  -- , fromModifier :: modifier -> WORD
  }
 -- deriving (Contravariant)
+
+{-|
+
+@
+i :: Injections a b
+(i&forwardInjection) >=> (i&backwardInjection) === (id ||| const Nothing)
+(i&forwardInjection) <=< (i&backwardInjection) === (id ||| const Nothing)
+@
+
+@
+
+roundtripForwards :: Injections a b -> (a -> Maybe a)
+roundtripForwards  i = (i&forwardInjection) >=> (i&backwardInjection)
+
+roundtripBackwards :: Injections a b -> (b -> Maybe b)
+roundtripBackwards i = (i&forwardInjection) <=< (i&backwardInjection)
+
+case roundtripForwards i x of
+ Nothing -> True
+ Just y  -> x == y
+
+law> roundtripForwards  i a >>> maybe True (== a)
+law> roundtripBackwards i b >>> maybe True (== b)
+
+NO
+
+\forall a -> case (i&forwardInjection) a of
+ Nothing -> \forall b -> (i&backwardInjection) b \= Just a
+ Just b -> (i&backwardInjection) b == a
+
+-}
+data Injections a b = Injections --TODO
+ { forwardInjection  :: a -> Maybe b
+ , backwardInjection :: b -> Maybe a
+ }
+-- instance Profunctor Injections
+
+{-|
+
+takes an enum to a virtual code.
+
+"gizmo"s include:
+
+* mouse buttons
+* mouse wheels
+
+-}
+data Mouse gizmo = Mouse
+ { fromGizmo :: gizmo -> DWORD -- CULong
+ }
+ -- deriving (Contravariant)
 
 newtype Application = Application String
  deriving (Show, IsString)
@@ -34,6 +97,12 @@ newtype Application = Application String
 newtype URL = URL String
  deriving (Show, IsString)
 
+
+{-|
+
+see <https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx Virtual-Key Codes>
+
+-}
 data VK
 
    = VK_BACK           -- ^
@@ -41,10 +110,10 @@ data VK
 
    | VK_CLEAR          -- ^
    | VK_RETURN         -- ^
-   | VK_SHIFT          -- ^
-   | VK_CONTROL        -- ^
+   | VK_SHIFT          -- ^ SHIFT
+   | VK_CONTROL        -- ^ CTRL
 
-   | VK_MENU           -- ^
+   | VK_MENU           -- ^ ALT
    | VK_PAUSE          -- ^
    | VK_CAPITAL        -- ^
 
@@ -117,7 +186,7 @@ data VK
    | VK_Y              -- ^
    | VK_Z              -- ^
 
-   | VK_LWIN           -- ^
+   | VK_LWIN           -- ^ WINDOWS
    | VK_RWIN           -- ^
    | VK_APPS           -- ^
 
@@ -252,6 +321,35 @@ data VK
    | VK_OEM_CLEAR      -- ^
 
    deriving (Show,Enum)
+
+data MouseButton
+ = LeftButton
+ | MiddleButton
+ | RightButton
+ | XButton
+ deriving (Show,Enum)
+
+data MouseWheel
+ = VerticalWheel
+ | HorizontalWheel
+ deriving (Show,Enum)
+
+data MOUSEEVENTF
+ = MOUSEEVENTF_MOVE        -- ^ mouse move
+ | MOUSEEVENTF_LEFTDOWN    -- ^ left button down
+ | MOUSEEVENTF_LEFTUP      -- ^ left button up
+ | MOUSEEVENTF_RIGHTDOWN   -- ^ right button down
+ | MOUSEEVENTF_RIGHTUP     -- ^ right button up
+ | MOUSEEVENTF_MIDDLEDOWN  -- ^ middle button down
+ | MOUSEEVENTF_MIDDLEUP    -- ^ middle button up
+ | MOUSEEVENTF_XDOWN       -- ^ x button down
+ | MOUSEEVENTF_XUP         -- ^ x button down
+ | MOUSEEVENTF_WHEEL                -- ^ wheel button rolled
+ | MOUSEEVENTF_HWHEEL               -- ^ hwheel button rolled
+ | MOUSEEVENTF_MOVE_NOCOALESCE      -- ^ do not coalesce mouse moves
+ | MOUSEEVENTF_VIRTUALDESK          -- ^ map to entire virtual desktop
+ | MOUSEEVENTF_ABSOLUTE             -- ^ absolute move
+ deriving (Show,Enum)
 
 data Point = Point
  { _x :: LONG

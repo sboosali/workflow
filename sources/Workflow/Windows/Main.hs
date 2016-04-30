@@ -4,9 +4,13 @@ import Workflow.Windows
 
 main :: IO ()
 main = do
+  {-}
  print =<< getClipboard
  sendChar 'c'
  sendText "insertText"
- pressKeychord vkKeyboard [VK_CONTROL] VK_A
+ pressKeychord windowsKeyboard [VK_CONTROL] VK_A
  openUrl "http://google.com"
  openApplication "cmd.exe"
+ -}
+ --clickMouseAt windowsMouse (Point (maxBound `div` 2) minBound) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
+ clickMouseAt windowsMouse (Point 800 10) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
