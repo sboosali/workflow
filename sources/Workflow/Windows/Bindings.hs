@@ -111,6 +111,9 @@ clickMouseAt Mouse{..} Point{..} times down up
 foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
   c_ClickMouseAt :: Int -> Int -> Int -> DWORD -> DWORD -> IO ()
 
+-- MOUSEEVENTF_MOVE .|. MOUSEEVENTF_ABSOLUTE .|. buttonDown .|. buttonUp
+-- foldl (.|.) [MOUSEEVENTF_MOVE, MOUSEEVENTF_ABSOLUTE, buttonDown, buttonUp]
+
 {-|
 
 truncates large integral types.

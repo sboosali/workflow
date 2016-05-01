@@ -1,8 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Workflow.Windows.Types where
 
+import Foreign
 import Foreign.C.Types
 import Foreign.C.String
+import Foreign.Storable
 import Data.Word
 import Data.Int
 import GHC.Exts
@@ -351,7 +353,17 @@ data MOUSEEVENTF
  | MOUSEEVENTF_ABSOLUTE             -- ^ absolute move
  deriving (Show,Enum)
 
-data Point = Point
+{-|
+
+TODO vinyl record
+GetCursorPos
+
+ with malloc $ \p -> do
+  GetCursorPos p
+  sequence [peek p 0, peek p 4]
+
+-}
+data POINT = POINT
  { _x :: LONG
  , _y :: LONG
  }
