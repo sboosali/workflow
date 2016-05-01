@@ -104,8 +104,8 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyUp"
 --moveMouseTo ::
 --moveMouseTo =
 
-clickMouseAt :: Mouse MOUSEEVENTF -> Point -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
-clickMouseAt Mouse{..} Point{..} times down up
+clickMouseAt :: Mouse MOUSEEVENTF -> POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
+clickMouseAt Mouse{..} POINT{..} times down up
  = c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (fromGizmo down) (fromGizmo up)
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"

@@ -4,9 +4,6 @@ module Workflow.Windows.Types where
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
-import Foreign.Storable
-import Data.Word
-import Data.Int
 import GHC.Exts
 
 type LPCWSTR = CWString
@@ -27,7 +24,7 @@ newtype HWND = HWND (Ptr ())
 
 {-| Keyboard/Mouse as union of like all possible virtual keyboards/mice?
 that's just an int.
-or intersection, as the point of Workflow is cross-platform actions.
+or intersection, as the POINT of Workflow is cross-platform actions.
 
 -}
 
@@ -378,7 +375,7 @@ struct POINT
 }
 @
 
-instance Storeable Point where
+instance Storeable POINT where
   sizeOf _  = sizeOf (0::LONG) + sizeOf (0::LONG)
 
   -- "The entire structure is aligned on a boundary
@@ -389,10 +386,10 @@ instance Storeable Point where
   peek p = do
     _x <- peekByteOff p (0 * sizeOf (0::LONG))
     _y <- peekByteOff p (4 * sizeOf (0::LONG))
-    return Point{..}
+    return POINT{..}
 
   -- pokeByteOff addr off x = poke (addr `plusPtr` off) x
-  poke p Point{..} = do
+  poke p POINT{..} = do
     pokeByteOff p (0 * sizeOf (0::LONG)) _x
     pokeByteOff p (4 * sizeOf (0::LONG)) _y
     -}
