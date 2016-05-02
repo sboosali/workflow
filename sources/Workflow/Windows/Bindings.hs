@@ -17,6 +17,12 @@ import Numeric.Natural
 #include "calling_convention.h"
 
 
+toDWORD :: (Integral a) => a -> DWORD
+toDWORD = fromIntegral
+
+delay :: Int -> IO ()
+delay = threadDelay . (*1000)
+
 {-
 ::  -> IO ()
  = c_
@@ -106,8 +112,6 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyUp"
 --moveMouseTo ::
 --moveMouseTo =
 
-toDWORD :: (Integral a) => a -> DWORD
-toDWORD = fromIntegral
 
 clickMouseAt :: Mouse MOUSEEVENTF -> POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
 clickMouseAt Mouse{..} POINT{..} times down up
@@ -116,7 +120,7 @@ clickMouseAt Mouse{..} POINT{..} times down up
 foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
   c_ClickMouseAt :: Int -> Int -> Int -> DWORD -> DWORD -> IO ()
 
-hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO ()
+hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO () --TODO reversed? or my trackpad settings?
 hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
  (encodeMOUSEEVENTF . encodeMouseWheel $ wheel)
  (encodeDirection direction)

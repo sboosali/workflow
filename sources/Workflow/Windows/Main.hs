@@ -19,4 +19,6 @@ nothing = return ()
 main :: IO ()
 main = do
  nothing
- hs_ScrollMouseWheel VerticalWheel Forwards 100
+ hs_ScrollMouseWheel VerticalWheel Backwards 120
+ delay 1000
+ hs_ScrollMouseWheel VerticalWheel Forwards  120
