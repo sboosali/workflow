@@ -135,6 +135,29 @@ UINT ClickMouseAt(int x, int y, int n, DWORD buttonDown, DWORD buttonUp) {
 
 /*
 
+wheel is {MOUSEEVENTF_WHEEL, MOUSEEVENTF_HWHEEL}
+
+direction is {+1, -1} i.e. {forwards, backwards} i.e. {towards you, away from you}
+
+*/
+UINT ScrollMouseWheel(DWORD wheel, DWORD direction, DWORD distance) {
+	// mouse_event(MOUSEEVENTF_WHEEL, 0, 0, direction * distance, 0);
+
+	INPUT i;
+	i.type = INPUT_MOUSE;
+	i.mi.dx = 0;
+	i.mi.dy = 0;
+	i.mi.time = 0; // otherwise monitor falls asleep, because the last mouse event is said to be some large number (garbage memory).
+	i.mi.dwExtraInfo = 0;
+
+	i.mi.dwFlags = wheel; // MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE
+	i.mi.mouseData = direction * distance;
+
+	return SendInput(1, &i, sizeof(INPUT));
+}
+
+/*
+
 uses the PATH?
 
 */

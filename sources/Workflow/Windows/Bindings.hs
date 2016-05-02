@@ -39,7 +39,9 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h SetClipboard"
  c_SetClipboard :: CWString -> IO ()
 
 
-{-| inserts char-by-char, no delay.
+{-| inserts some text into the current application.
+
+char-by-char (one per event), no delay (between events).
 
 -}
 sendText :: String -> IO ()
@@ -56,7 +58,7 @@ sendTextDelaying i = traverse_ (\c -> sendChar c >> threadDelay i)
 
 sendChar :: Char -> IO ()
 sendChar c = do
- _ <- c_SendUnicodeChar (CWchar (fromIntegral (ord c))) -- cast doesn't overflow, there are ~1,000,000 chars.
+ _ <- c_SendUnicodeChar ((CWchar . fromIntegral . ord) c) -- cast doesn't overflow, there are ~1,000,000 chars.
  return ()
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h SendUnicodeChar"
@@ -104,12 +106,27 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyUp"
 --moveMouseTo ::
 --moveMouseTo =
 
+toDWORD :: (Integral a) => a -> DWORD
+toDWORD = fromIntegral
+
 clickMouseAt :: Mouse MOUSEEVENTF -> POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
 clickMouseAt Mouse{..} POINT{..} times down up
  = c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (fromGizmo down) (fromGizmo up)
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
   c_ClickMouseAt :: Int -> Int -> Int -> DWORD -> DWORD -> IO ()
+
+hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO ()
+hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
+ (encodeMOUSEEVENTF . encodeMouseWheel $ wheel)
+ (encodeDirection direction)
+ (toDWORD distance)
+
+foreign import CALLING_CONVENTION unsafe "Workflow.h ScrollMouseWheel"
+ c_ScrollMouseWheel :: DWORD -> DWORD -> DWORD -> IO ()
+
+
+--GetCursorPos
 
 -- MOUSEEVENTF_MOVE .|. MOUSEEVENTF_ABSOLUTE .|. buttonDown .|. buttonUp
 -- foldl (.|.) [MOUSEEVENTF_MOVE, MOUSEEVENTF_ABSOLUTE, buttonDown, buttonUp]
@@ -426,6 +443,11 @@ encodeMouseWheel :: MouseWheel -> MOUSEEVENTF
 encodeMouseWheel = \case
  VerticalWheel   -> MOUSEEVENTF_WHEEL
  HorizontalWheel -> MOUSEEVENTF_HWHEEL
+
+encodeDirection :: Direction -> DWORD
+encodeDirection = \case
+ Forwards  -> 1 -- right?
+ Backwards -> -1 -- left?
 
 encodeMouseButton :: MouseButton -> (MOUSEEVENTF,MOUSEEVENTF)
 encodeMouseButton = \case

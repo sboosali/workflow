@@ -333,6 +333,11 @@ data MouseWheel
  | HorizontalWheel
  deriving (Show,Enum)
 
+data Direction
+  = Forwards
+  | Backwards
+  deriving (Show,Enum)
+
 data MOUSEEVENTF
  = MOUSEEVENTF_MOVE        -- ^ mouse move
  | MOUSEEVENTF_LEFTDOWN    -- ^ left button down

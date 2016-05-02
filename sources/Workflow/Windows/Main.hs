@@ -17,4 +17,6 @@ nothing :: IO ()
 nothing = return ()
 
 main :: IO ()
-main = nothing
+main = do
+ nothing
+ hs_ScrollMouseWheel VerticalWheel Forwards 100
