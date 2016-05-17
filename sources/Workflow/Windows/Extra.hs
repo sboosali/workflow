@@ -4,6 +4,7 @@ module Workflow.Windows.Extra
  , module Data.Data
  , module GHC.Generics
  , module Data.Function
+ , module Data.Foldable
  ) where
 import Workflow.Windows.Types
 
@@ -12,7 +13,7 @@ import Control.Concurrent (threadDelay)
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import Data.Function ((&),on)
-
+import Data.Foldable (traverse_)
 
 nothing :: IO ()
 nothing = return ()

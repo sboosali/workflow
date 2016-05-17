@@ -1,4 +1,4 @@
-{-# LANGUAGE ForeignFunctionInterface, CPP, ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, RecordWildCards #-}
 {-|
 
 all derived in Haskell
@@ -7,13 +7,11 @@ all derived in Haskell
 module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
 import Workflow.Windows.Extra
+import Workflow.Windows.Foreign
 
 import Foreign.C
 import Data.Char
-import Data.Foldable
 import Numeric.Natural
-
-#include "calling_convention.h"
 
 {-
 ::  -> IO ()
@@ -28,14 +26,8 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h "
 getClipboard :: IO String
 getClipboard = c_GetClipboard >>= peekCWString
 
-foreign import CALLING_CONVENTION unsafe "Workflow.h GetClipboard"
- c_GetClipboard :: IO CWString
-
 setClipboard :: String -> IO ()
 setClipboard s = withCWString s c_SetClipboard
-
-foreign import CALLING_CONVENTION unsafe "Workflow.h SetClipboard"
- c_SetClipboard :: CWString -> IO ()
 
 --------------------------------------------------------------------------------
 
@@ -59,9 +51,6 @@ sendChar :: Char -> IO ()
 sendChar c = do
  _ <- c_SendUnicodeChar ((CWchar . fromIntegral . ord) c) -- cast doesn't overflow, there are ~1,000,000 chars.
  return ()
-
-foreign import CALLING_CONVENTION unsafe "Workflow.h SendUnicodeChar"
- c_SendUnicodeChar :: WCHAR_T -> IO UINT
 
 --------------------------------------------------------------------------------
 
@@ -91,14 +80,8 @@ pressKeyDelaying milliseconds key = do
 pressKeyDown :: VK -> IO ()
 pressKeyDown = c_PressKeyDown . getVK
 
-foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyDown"
- c_PressKeyDown :: WORD -> IO ()
-
 pressKeyUp :: VK -> IO ()
 pressKeyUp = c_PressKeyUp . getVK
-
-foreign import CALLING_CONVENTION unsafe "Workflow.h PressKeyUp"
- c_PressKeyUp :: WORD -> IO ()
 
 --------------------------------------------------------------------------------
 
@@ -111,17 +94,11 @@ clickMouseAt :: POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
 clickMouseAt POINT{..} times down up
  = c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
 
-foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
-  c_ClickMouseAt :: Int -> Int -> Int -> DWORD -> DWORD -> IO ()
-
 hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO () --TODO reversed? or my trackpad settings?
 hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
  (wheel & encodeMouseWheel & getMOUSEEVENTF)
  (encodeDirection direction)
  (toDWORD distance)
-
-foreign import CALLING_CONVENTION unsafe "Workflow.h ScrollMouseWheel"
- c_ScrollMouseWheel :: DWORD -> DWORD -> DWORD -> IO ()
 
 --GetCursorPos
 
@@ -139,14 +116,8 @@ launchApplication s = withCWString s c_LaunchApplication
 openApplication :: Application -> IO () -- launchApplication?
 openApplication (Application s) = withCWString s c_OpenApplication
 
-foreign import CALLING_CONVENTION unsafe "Workflow.h OpenApplication"
- c_OpenApplication :: CWString -> IO ()
-
 openUrl :: URL -> IO () -- visitURL?
 openUrl (URL s) = withCWString s c_OpenUrl
-
-foreign import CALLING_CONVENTION unsafe "Workflow.h OpenUrl"
- c_OpenUrl :: CWString -> IO ()
 
 --------------------------------------------------------------------------------
 

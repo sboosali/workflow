@@ -33,6 +33,7 @@ library
   Workflow.Windows
   Workflow.Windows.Types
   Workflow.Windows.Bindings
+  Workflow.Windows.Foreign
 
 -- other-modules:
   Workflow.Windows.Main
