@@ -43,7 +43,7 @@ library
   , lens
 
 
--- $ stack exec workflow-windows
+-- $ stack build && stack exec workflow-windows
 executable workflow-windows
  hs-source-dirs:      executables
  main-is:             Main.hs

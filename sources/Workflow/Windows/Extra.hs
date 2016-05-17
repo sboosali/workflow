@@ -1,11 +1,14 @@
 module Workflow.Windows.Extra
  ( module Workflow.Windows.Extra
  , module Control.Arrow
+ , module Data.Data
  ) where
 import Workflow.Windows.Types
 
 import Control.Arrow ((>>>))
 import Control.Concurrent (threadDelay)
+import Data.Data (Data)
+import GHC.Generics (Generic)
 
 
 nothing :: IO ()
