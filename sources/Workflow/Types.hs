@@ -164,21 +164,26 @@ type Time = Int
 
 --------------------------------------------------------------------------------
 
-{-| an (unordered, no-duplicates) sequence of key
-chords make up a keyboard shortcut
+{-| a sequence of key chords make up a keyboard shortcut
 
-not a Set for simplicity (e.g. to avoid imports and Ord constraints).
+Naming: TODO rename KeyboardShortcut
 
-TODO rename
 -}
-type KeyRiff  = [KeyChord]
+type KeyBinding  = [KeyChord] --TODO NonEmpty KeyChord
+--TODO newtype for non-overlapping IsString
 
-{- |
+-- an (unordered, no-duplicates) sequence of key
+-- chords make up a keyboard shortcut
+-- not a Set for simplicity (e.g. to avoid imports and Ord constraints).
+--really?
+
+{- | represents joitly holding down all the modifiers
+while individually press each key down and back up.
 
 Naming: https://www.emacswiki.org/emacs/Chord
 
 -}
-type KeyChord = ([Modifier], Key)
+type KeyChord = ([Modifier], [Key]) --TODO ([Modifier], NonEmpty Key)
 -- data KeyChord = KeyChord [Modifier] Key
 {- data KeyChord = KeyChord
  { kcModifiers :: [Modifier]
@@ -186,15 +191,9 @@ type KeyChord = ([Modifier], Key)
  }
 -}
 
--- | @pattern KeyChord ms k = (ms,k)@
-pattern KeyChord ms k = (ms, k)
-
--- | @pattern NoMod k = ([],k)@
-pattern NoMod       k = ([],   k)
-
 -- | appends a modifier
 addMod :: Modifier -> KeyChord -> KeyChord
-addMod m (ms, k) = KeyChord (m:ms) k
+addMod m (ms, k) = (m:ms, k)
 -- false positive nonexhaustive warning with the KeyChord pattern. fixed in ghc8?
 -- addMod m (KeyChord ms k) = KeyChord (m:ms) k
 
@@ -206,23 +205,36 @@ the escape key is "pressed", not "held", it seems.
 @alt@ is 'OptionModifier'.
 
 -}
-data Modifier = ControlModifier | CommandModifier | ShiftModifier | OptionModifier | FunctionModifier
- -- Command is qualified to not conflict with Commands.Command.Types
+data Modifier
+ = MetaModifier
+ | HyperModifier
+ | ControlModifier
+ | OptionModifier
+ | ShiftModifier
+ | FunctionModifier
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
--- data Modifier = ControlMod | CommandMod | ShiftMod | OptionMod | FunctionMod
 
-{- | all the keys on a standard Apple keyboard.
+{- | a "cross-platform" keyboard:
 
+* keys that exist on standard keyboards.
+* plus, 'MetaKey' and 'HyperKey': virtual modifiers to abstract over
+common keyboard shortcuts.
+
+(let me know if you want a type to support cross-platform international keyboards,
+i haven't looked into it. you can still use the
+paltform-specific virtual-key-codes in the dependent packages:
+@workflow-linux@, @workflow-osx@, and @workflow-windows@)
 
 -}
 data Key
 
- = CommandKey
- | ControlKey
+ = ControlKey
  | CapsLockKey
  | ShiftKey
  | OptionKey
  | FunctionKey
+ | MetaKey -- ^ fake key: Alt on Linux/Windows, Command on OSX
+ | HyperKey -- ^ fake key: Control on Linux/Windows, Command on OSX
 
  | GraveKey
  | MinusKey
