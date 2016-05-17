@@ -22,7 +22,7 @@ delay = threadDelay . (*1000)
 
 {-|
 
-truncates large integral types.
+(NOTE truncates large integral types).
 
 -}
 toInt :: (Integral a) => a -> Int
