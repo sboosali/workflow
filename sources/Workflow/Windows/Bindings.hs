@@ -6,22 +6,15 @@ all derived in Haskell
 -}
 module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
+import Workflow.Windows.Extra
 
 import Foreign.C
 import Data.Char
 import Data.Foldable
-import Control.Concurrent
-import Control.Arrow
 import Numeric.Natural
 
 #include "calling_convention.h"
 
-
-toDWORD :: (Integral a) => a -> DWORD
-toDWORD = fromIntegral
-
-delay :: Int -> IO ()
-delay = threadDelay . (*1000)
 
 {-
 ::  -> IO ()
@@ -59,7 +52,7 @@ milliseconds
 
 -}
 sendTextDelaying :: Int -> String -> IO ()
-sendTextDelaying i = traverse_ (\c -> sendChar c >> threadDelay i)
+sendTextDelaying i = traverse_ (\c -> sendChar c >> delay i)
 
 
 sendChar :: Char -> IO ()
@@ -91,7 +84,7 @@ milliseconds
 pressKeyDelaying :: Int -> Keyboard key -> key -> IO ()
 pressKeyDelaying milliseconds keyboard key = do
  pressKeyDown keyboard key
- threadDelay milliseconds -- TODO is threadDelay 0 like noop?
+ delay milliseconds -- TODO is threadDelay 0 like noop?
  pressKeyUp   keyboard key
 
 pressKeyDown :: Keyboard key -> key -> IO ()
@@ -134,15 +127,6 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h ScrollMouseWheel"
 
 -- MOUSEEVENTF_MOVE .|. MOUSEEVENTF_ABSOLUTE .|. buttonDown .|. buttonUp
 -- foldl (.|.) [MOUSEEVENTF_MOVE, MOUSEEVENTF_ABSOLUTE, buttonDown, buttonUp]
-
-{-|
-
-truncates large integral types.
-
--}
-toInt :: (Integral a) => a -> Int
-toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
-
 
 {-|
 TODO windows "apps"

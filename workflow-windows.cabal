@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Spiros Boosalis
 maintainer:          samboosalis@gmail.com
-copyright:           2015 Spiros Boosalis
+copyright:           2016 Spiros Boosalis
 category:            Development
 build-type:          Simple
 -- extra-source-files:
@@ -33,7 +33,10 @@ library
   Workflow.Windows
   Workflow.Windows.Types
   Workflow.Windows.Bindings
+
+-- other-modules:
   Workflow.Windows.Main
+  Workflow.Windows.Extra
 
  build-depends:
     base >=4.7 && <5
