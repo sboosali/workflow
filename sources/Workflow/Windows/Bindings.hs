@@ -116,7 +116,7 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h ClickMouseAt"
 
 hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO () --TODO reversed? or my trackpad settings?
 hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
- (getMOUSEEVENTF . encodeMouseWheel $ wheel)
+ (wheel & encodeMouseWheel & getMOUSEEVENTF)
  (encodeDirection direction)
  (toDWORD distance)
 
