@@ -1,0 +1,7 @@
+resolver: lts-5.5
+
+packages:
+- .
+- ../workflow-types
+
+extra-deps: []
