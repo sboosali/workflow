@@ -18,13 +18,19 @@ testWorkflow = do
  openUrl "http://google.com"
  --clickMouseAt windowsMouse (POINT (maxBound `div` 2) minBound) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
  clickMouseAt (POINT 800 10) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
- hs_ScrollMouseWheel VerticalWheel Backwards 120
+ scrollMouse ScrollTowards 120 -- up (with my trackpad, "natural" scrolling disabled)
+ delayMilliseconds 1000
+ scrollMouse ScrollAway 60 -- down (with my trackpad, "natural" scrolling disabled)
 
 main :: IO ()
 main = do
- nothing
+ print "workflow-windows-example..."
+ delayMilliseconds 4000
  --testWorkflow
  --pressKeychord [] VK_VOLUME_MUTE
  -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
- pressKeychord [] VK_MEDIA_PLAY_PAUSE
- 
+ -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
+ -- replicateM_ 2 $ pressKeychord [VK_MENU] VK_F -- press "A-f"
+ -- scrollMouse ScrollTowards 200
+ -- delayMilliseconds 1000
+ -- scrollMouse ScrollAway 1000

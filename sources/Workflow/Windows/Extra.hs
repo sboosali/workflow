@@ -5,6 +5,7 @@ module Workflow.Windows.Extra
  , module GHC.Generics
  , module Data.Function
  , module Data.Foldable
+ , module Export_
  ) where
 import Workflow.Windows.Types
 
@@ -15,6 +16,7 @@ import GHC.Generics (Generic)
 import Data.Function ((&),on)
 import Data.Foldable (traverse_)
 import Control.Monad.IO.Class
+import Control.Monad as Export_
 
 nothing :: IO ()
 nothing = return ()

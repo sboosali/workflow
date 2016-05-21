@@ -7,13 +7,7 @@ import Workflow.Types hiding (Application,URL)
 
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
-import Control.Monad.Trans.State
 
-import Control.Concurrent             (threadDelay)
-
-import Data.Foldable                  (traverse_)
-import Data.List                      (intercalate)
-import Data.Monoid                    ((<>))
 import Control.Monad.IO.Class
 
 
@@ -67,6 +61,8 @@ runWorkflowT = iterT go
   Delay           t k              -> delayMilliseconds t >> k
  -- 1,000 µs is 1ms
 
+-----------------------------------------------------------------------------------------
+
 win32SendKeyChord :: (MonadIO m) => [Modifier] -> Key -> m ()
 win32SendKeyChord modifiers key
  = liftIO $ Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
@@ -78,7 +74,7 @@ fromModifier = \case
  ControlModifier  -> VK_CONTROL
  OptionModifier   -> VK_MENU
  ShiftModifier    -> VK_SHIFT
- FunctionModifier -> todo
+ FunctionModifier -> VK_FN
 
 fromKey :: Key -> VK
 fromKey = \case

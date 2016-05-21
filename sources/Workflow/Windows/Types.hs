@@ -72,14 +72,11 @@ data MouseButton
  | XButton
  deriving (Show,Enum)
 
-data MouseWheel
- = VerticalWheel
- | HorizontalWheel
- deriving (Show,Enum)
-
-data Direction
-  = Forwards
-  | Backwards
+data MouseScroll
+  = ScrollTowards -- ScrollUp (from user)
+  | ScrollAway -- ScrollDown (from user)
+  | ScrollLeft
+  | ScrollRight
   deriving (Show,Enum)
 
 {-|
@@ -214,7 +211,7 @@ pattern VK_MENU = 0x12
 -- |
 pattern VK_PAUSE :: VK
 pattern VK_PAUSE = 0x13
--- |
+-- | @CapsLock@
 pattern VK_CAPITAL :: VK
 pattern VK_CAPITAL = 0x14
 
@@ -259,10 +256,10 @@ pattern VK_MODECHANGE = 0x1F
 -- |
 pattern VK_SPACE :: VK
 pattern VK_SPACE = 0x20
--- |
+-- | @PgUp@
 pattern VK_PRIOR :: VK
 pattern VK_PRIOR = 0x21
--- |
+-- | @PgDn@
 pattern VK_NEXT :: VK
 pattern VK_NEXT = 0x22
 -- |
@@ -568,19 +565,18 @@ pattern VK_OEM_NEC_EQUAL = 0x92
 
 -- Fujitsu/OASYS kbd definitions
 
--- @| Dictionary@ key
--- |
+-- | @Dictionary@ key
 pattern VK_OEM_FJ_JISHO :: VK
 pattern VK_OEM_FJ_JISHO = 0x92
--- @| Unregister word@ key
+-- | @Unregister word@ key
 -- |
 pattern VK_OEM_FJ_MASSHOU :: VK
 pattern VK_OEM_FJ_MASSHOU = 0x93
--- @| Register word@ key
+-- | @Register word@ key
 -- |
 pattern VK_OEM_FJ_TOUROKU :: VK
 pattern VK_OEM_FJ_TOUROKU = 0x94
--- @| Left OYAYUBI@ key
+-- | @Left OYAYUBI@ key
 -- |
 pattern VK_OEM_FJ_LOYA :: VK
 pattern VK_OEM_FJ_LOYA = 0x95
@@ -668,7 +664,7 @@ pattern VK_LAUNCH_APP1 = 0xB6
 pattern VK_LAUNCH_APP2 :: VK
 pattern VK_LAUNCH_APP2 = 0xB7
 
--- | @;:@ for US
+-- | @;:@ for the US
 -- |
 pattern VK_OEM_1 :: VK
 pattern VK_OEM_1 = 0xBA
@@ -688,28 +684,28 @@ pattern VK_OEM_MINUS = 0xBD
 -- |
 pattern VK_OEM_PERIOD :: VK
 pattern VK_OEM_PERIOD = 0xBE
--- | @/?@ | for US
+-- | @/?@ | for the US
 -- |
 pattern VK_OEM_2 :: VK
 pattern VK_OEM_2 = 0xBF
--- | @`~@ | for US
+-- | @`~@ | for the US
 -- |
 pattern VK_OEM_3 :: VK
 pattern VK_OEM_3 = 0xC0
 
--- | @[{@ | for US
+-- | @[{@ | for the US
 -- |
 pattern VK_OEM_4 :: VK
 pattern VK_OEM_4 = 0xDB
--- |  @\|@ | for US
+-- |  @\|@ | for the US
 -- |
 pattern VK_OEM_5 :: VK
 pattern VK_OEM_5 = 0xDC
--- |  @]}@ | for US
+-- |  @]}@ | for the US
 -- |
 pattern VK_OEM_6 :: VK
 pattern VK_OEM_6 = 0xDD
--- | @"@ for US
+-- | @"@ for the US
 -- |
 pattern VK_OEM_7 :: VK
 pattern VK_OEM_7 = 0xDE
@@ -720,18 +716,18 @@ pattern VK_OEM_8 = 0xDF
 -- Various extended or enhanced keyboards
 
 -- | AX key on Japanese AX kbd
--- |
+--
 pattern VK_OEM_AX :: VK
 pattern VK_OEM_AX = 0xE1
 -- | @"<>"@ or @"\|"@ on RT 102-key kbd.
--- |
+--
 pattern VK_OEM_102 :: VK
 pattern VK_OEM_102 = 0xE2
 -- | "Help key on ICO"
 pattern VK_ICO_HELP :: VK
 pattern VK_ICO_HELP = 0xE3
 -- | "00 key on ICO"
--- |
+--
 pattern VK_ICO_00 :: VK
 pattern VK_ICO_00 = 0xE4
 
@@ -743,7 +739,7 @@ pattern VK_PROCESSKEY = 0xE5
 pattern VK_ICO_CLEAR :: VK
 pattern VK_ICO_CLEAR = 0xE6
 
--- |
+-- | "Windows 2000: Used to pass Unicode characters as if they were keystrokes. The VK_PACKET key is the low word of a 32-bit Virtual Key value used for non-keyboard input methods. The Unicode character is the high word."
 pattern VK_PACKET :: VK
 pattern VK_PACKET = 0xE7
 
@@ -814,3 +810,9 @@ pattern VK_PA1 = 0xFD
 -- |
 pattern VK_OEM_CLEAR :: VK
 pattern VK_OEM_CLEAR = 0xFE
+
+-- | @Fn@ key "on most laptops" (undocumented)
+--
+-- http://stackoverflow.com/questions/4718069/what-is-win32-virtual-key-code-0xff-used-for-and-is-it-documented-somewhere
+pattern VK_FN :: VK
+pattern VK_FN = 0xFF

@@ -49,8 +49,8 @@ library
   , free
 
 
--- $ stack build && stack exec workflow-windows
-executable workflow-windows
+-- $ stack build && stack exec workflow-windows-example
+executable workflow-windows-example
  hs-source-dirs:      executables
  main-is:             Main.hs
  default-language:    Haskell2010

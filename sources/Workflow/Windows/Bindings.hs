@@ -88,18 +88,33 @@ pressKeyUp = liftIO . c_PressKeyUp . getVK
 
 --clickMouse :: Natural -> m ()
 
---moveMouseTo ::
---moveMouseTo =
+-- data MouseMotion = MoveMouseRelatively Interval | MoveMouseAbsolutely POINT
+--moveMouse :: (MonadIO m) => MouseMotion -> m ()
+--moveMouse =
+
+-- absolute coordinates
+-- getMousePosition :: (MonadIO m) => m POINT
+
+-- getScreenSize :: (MonadIO m) => m RECT
+-- getClientSize :: (MonadIO m) => m RECT
 
 clickMouseAt :: (MonadIO m) => POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> m ()
 clickMouseAt POINT{..} times down up
  = liftIO $ c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
 
-hs_ScrollMouseWheel :: (MonadIO m) => MouseWheel -> Direction -> Natural -> m () --TODO reversed? or my trackpad settings?
-hs_ScrollMouseWheel wheel direction distance = liftIO $ c_ScrollMouseWheel
- (wheel & encodeMouseWheel & getMOUSEEVENTF)
- (encodeDirection direction)
- (toDWORD distance)
+-- type IO' a = (MonadIO m) => m a
+
+{-|
+
+distance: 120 units is about one "tick" of the wheel
+(i.e. a few dozen nudges the screen).
+
+-}
+scrollMouse :: (MonadIO m) => MouseScroll -> Natural -> m () --TODO reversed? or my trackpad settings?
+scrollMouse (encodeMouseScroll -> (wheel, direction)) distance = liftIO $ c_ScrollMouseWheel
+ (wheel & getMOUSEEVENTF)
+ (direction)
+ (distance & toDWORD)
 
 --GetCursorPos
 
@@ -125,16 +140,27 @@ openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 
 ------------------------------------------------------------------------
 
-encodeMouseWheel :: MouseWheel -> MOUSEEVENTF
-encodeMouseWheel = \case
- VerticalWheel   -> MOUSEEVENTF_WHEEL
- HorizontalWheel -> MOUSEEVENTF_HWHEEL
+{-|
 
-encodeDirection :: Direction -> DWORD
-encodeDirection = \case
- Forwards  -> 1 -- right?
- Backwards -> -1 -- left?
+@
+(wheel, direction) = encodeMouseScroll
+@
 
+-}
+encodeMouseScroll :: MouseScroll -> (MOUSEEVENTF, DWORD)
+encodeMouseScroll = \case
+    ScrollTowards -> (MOUSEEVENTF_WHEEL,   1)
+    ScrollAway    -> (MOUSEEVENTF_WHEEL,  -1)
+    ScrollRight   -> (MOUSEEVENTF_HWHEEL,  1)
+    ScrollLeft    -> (MOUSEEVENTF_HWHEEL, -1)
+
+{-|
+
+@
+(downEvent, upEvent) = encodeMouseButton
+@
+
+-}
 encodeMouseButton :: MouseButton -> (MOUSEEVENTF,MOUSEEVENTF)
 encodeMouseButton = \case
  LeftButton   -> (MOUSEEVENTF_LEFTDOWN   , MOUSEEVENTF_LEFTUP)
