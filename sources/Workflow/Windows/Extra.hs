@@ -14,6 +14,7 @@ import Data.Data (Data)
 import GHC.Generics (Generic)
 import Data.Function ((&),on)
 import Data.Foldable (traverse_)
+import Control.Monad.IO.Class
 
 nothing :: IO ()
 nothing = return ()
@@ -21,8 +22,8 @@ nothing = return ()
 toDWORD :: (Integral a) => a -> DWORD
 toDWORD = fromIntegral
 
-delay :: Int -> IO ()
-delay = threadDelay . (*1000)
+delayMilliseconds :: (MonadIO m) => Int -> m ()
+delayMilliseconds = liftIO . threadDelay . (*1000)
 
 {-|
 
