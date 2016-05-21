@@ -12,31 +12,32 @@ import Workflow.Windows.Foreign
 import Foreign.C
 import Data.Char
 import Numeric.Natural
+import Control.Monad.IO.Class
 
 {-
 ::  -> IO ()
  = c_
 
-foreign import CALLING_CONVENTION unsafe "Workflow.h "
+foreign import CALLING_CONVENTmN unsafe "Workflow.h "
  c_ ::  -> IO ()
 -}
 
 --------------------------------------------------------------------------------
 
-getClipboard :: IO String
-getClipboard = c_GetClipboard >>= peekCWString
+getClipboard :: (MonadIO m) => m String
+getClipboard = liftIO $ c_GetClipboard >>= peekCWString
 
-setClipboard :: String -> IO ()
-setClipboard s = withCWString s c_SetClipboard
+setClipboard :: (MonadIO m) => String -> m ()
+setClipboard s = liftIO $ withCWString s c_SetClipboard
 
 --------------------------------------------------------------------------------
 
-{-| inserts some text into the current application.
+{-| inserts some text into the current Application.
 
 char-by-char (one per event), no delay (between events).
 
 -}
-sendText :: String -> IO ()
+sendText :: (MonadIO m) => String -> m ()
 sendText = traverse_ sendChar -- TODO delay?
 
 {-|
@@ -44,24 +45,24 @@ sendText = traverse_ sendChar -- TODO delay?
 milliseconds
 
 -}
-sendTextDelaying :: Int -> String -> IO ()
-sendTextDelaying i = traverse_ (\c -> sendChar c >> delay i)
+sendTextDelaying :: (MonadIO m) => Int -> String -> m ()
+sendTextDelaying i = traverse_ (\c -> sendChar c >> delayMilliseconds i)
 
-sendChar :: Char -> IO ()
-sendChar c = do
+sendChar :: (MonadIO m) => Char -> m ()
+sendChar c = liftIO $ do
  _ <- c_SendUnicodeChar ((CWchar . fromIntegral . ord) c) -- cast doesn't overflow, there are ~1,000,000 chars.
  return ()
 
 --------------------------------------------------------------------------------
 
-pressKeychord :: [VK] -> VK -> IO ()
+pressKeychord :: (MonadIO m) => [VK] -> VK -> m ()
 pressKeychord modifiers key = do
   pressKeyDown `traverse_` modifiers
   pressKeyDown key
   pressKeyUp   key
   pressKeyUp   `traverse_` (reverse modifiers)
 
-pressKey :: VK -> IO ()
+pressKey :: (MonadIO m) => VK -> m ()
 pressKey key = do
  pressKeyDown key
  pressKeyUp   key
@@ -71,31 +72,31 @@ pressKey key = do
 milliseconds
 
 -}
-pressKeyDelaying :: Int -> VK -> IO ()
-pressKeyDelaying milliseconds key = do
+pressKeyDelaying :: (MonadIO m) => Int -> VK -> m ()
+pressKeyDelaying t key = do
  pressKeyDown key
- delay milliseconds -- TODO is threadDelay 0 like noop?
+ delayMilliseconds t -- TODO is threadDelay 0 like noop?
  pressKeyUp   key
 
-pressKeyDown :: VK -> IO ()
-pressKeyDown = c_PressKeyDown . getVK
+pressKeyDown :: (MonadIO m) => VK -> m ()
+pressKeyDown = liftIO . c_PressKeyDown . getVK
 
-pressKeyUp :: VK -> IO ()
-pressKeyUp = c_PressKeyUp . getVK
+pressKeyUp :: (MonadIO m) => VK -> m ()
+pressKeyUp = liftIO . c_PressKeyUp . getVK
 
 --------------------------------------------------------------------------------
 
---clickMouse :: Natural -> IO ()
+--clickMouse :: Natural -> m ()
 
 --moveMouseTo ::
 --moveMouseTo =
 
-clickMouseAt :: POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> IO ()
+clickMouseAt :: (MonadIO m) => POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> m ()
 clickMouseAt POINT{..} times down up
- = c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
+ = liftIO $ c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
 
-hs_ScrollMouseWheel :: MouseWheel -> Direction -> Natural -> IO () --TODO reversed? or my trackpad settings?
-hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
+hs_ScrollMouseWheel :: (MonadIO m) => MouseWheel -> Direction -> Natural -> m () --TODO reversed? or my trackpad settings?
+hs_ScrollMouseWheel wheel direction distance = liftIO $ c_ScrollMouseWheel
  (wheel & encodeMouseWheel & getMOUSEEVENTF)
  (encodeDirection direction)
  (toDWORD distance)
@@ -109,15 +110,15 @@ hs_ScrollMouseWheel wheel direction distance = c_ScrollMouseWheel
 
 {-|
 TODO windows "apps"
-launchApplication :: String -> IO ()
+launchApplication :: String -> m ()
 launchApplication s = withCWString s c_LaunchApplication
 -}
 
-openApplication :: Application -> IO () -- launchApplication?
-openApplication (Application s) = withCWString s c_OpenApplication
+openApplication :: (MonadIO m) => Application -> m () -- launchApplication?
+openApplication (Application s) = liftIO $ withCWString s c_OpenApplication
 
-openUrl :: URL -> IO () -- visitURL?
-openUrl (URL s) = withCWString s c_OpenUrl
+openUrl :: (MonadIO m) => URL -> m () -- visitURL?
+openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 
 --------------------------------------------------------------------------------
 

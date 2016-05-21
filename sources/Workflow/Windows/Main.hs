@@ -23,4 +23,8 @@ testWorkflow = do
 main :: IO ()
 main = do
  nothing
- testWorkflow
+ --testWorkflow
+ --pressKeychord [] VK_VOLUME_MUTE
+ -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
+ pressKeychord [] VK_MEDIA_PLAY_PAUSE
+ 

@@ -34,7 +34,7 @@ newtype URL = URL String
 {-|
 
 see
-<TODO Mouse Events>
+<https://msdn.microsoft.com/en-us/library/windows/desktop/ms646273(v=vs.85).aspx Mouse Events>
 
 -}
 newtype MOUSEEVENTF = MOUSEEVENTF DWORD
@@ -48,6 +48,8 @@ getMOUSEEVENTF (MOUSEEVENTF n) = n
 
 see
 <https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx Virtual-Key Codes>
+
+(no display brightness, no @Fn@ modifier key).
 
 -}
 newtype VK = VK WORD
@@ -191,8 +193,8 @@ pattern VK_CLEAR :: VK
 pattern VK_CLEAR = 0x0C
 
 -- |
-pattern RETURN :: VK
-pattern RETURN = 0x0D
+pattern VK_RETURN :: VK
+pattern VK_RETURN = 0x0D
 -- |
 pattern VK_SHIFT :: VK
 pattern VK_SHIFT = 0x10
