@@ -28,8 +28,14 @@ type LONG = Int64 -- CLong
 newtype Application = Application String
  deriving (Show, IsString)
 
+getApplication :: Application -> String
+getApplication (Application s) = s
+
 newtype URL = URL String
  deriving (Show, IsString)
+
+getURL :: URL -> String
+getURL (URL s) = s
 
 {-|
 
@@ -202,7 +208,7 @@ pattern VK_SHIFT = 0x10
 pattern VK_CONTROL :: VK
 pattern VK_CONTROL = 0x11
 
--- |
+-- | i.e. @Alt@
 pattern VK_MENU :: VK
 pattern VK_MENU = 0x12
 -- |

@@ -34,6 +34,7 @@ library
   Workflow.Windows.Types
   Workflow.Windows.Bindings
   Workflow.Windows.Foreign
+  Workflow.Windows.Execute
 
 -- other-modules:
   Workflow.Windows.Main
@@ -42,6 +43,10 @@ library
  build-depends:
     base >=4.7 && <5
   , transformers
+
+  -- TODO other package?
+  , workflow-types
+  , free
 
 
 -- $ stack build && stack exec workflow-windows

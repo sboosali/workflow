@@ -108,6 +108,9 @@ hs_ScrollMouseWheel wheel direction distance = liftIO $ c_ScrollMouseWheel
 
 --------------------------------------------------------------------------------
 
+currentApplication :: (MonadIO m) => m Application
+currentApplication = Application <$> todo
+
 {-|
 TODO windows "apps"
 launchApplication :: String -> m ()
@@ -120,7 +123,7 @@ openApplication (Application s) = liftIO $ withCWString s c_OpenApplication
 openUrl :: (MonadIO m) => URL -> m () -- visitURL?
 openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 
---------------------------------------------------------------------------------
+------------------------------------------------------------------------
 
 encodeMouseWheel :: MouseWheel -> MOUSEEVENTF
 encodeMouseWheel = \case

@@ -32,3 +32,6 @@ delayMilliseconds = liftIO . threadDelay . (*1000)
 -}
 toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
+
+todo :: a --TODO call stack
+todo = error "TODO"

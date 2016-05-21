@@ -1,83 +1,85 @@
 {-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts #-}
 module Workflow.Windows.Execute where
--- import Workflow.Windows.Bindings as Win32
--- import Workflow.Windows.Types
---
--- import Control.Monad.Free
--- import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
--- import Control.Monad.Trans.State
---
--- import Control.Concurrent             (threadDelay)
---
--- import Data.Foldable                  (traverse_)
--- import Data.List                      (intercalate)
--- import Data.Monoid                    ((<>))
--- import Control.Monad.IO.Class
---
---
--- runWorkflow :: Workflow a -> IO a
--- runWorkflow = runWorkflowT . toFreeT
---
--- {-|
---
--- you can eliminate a custom monad:
---
--- @
--- newtype W a = W
---  { getW :: WorkflowT IO a
---  } deriving
---  ( MonadWorkflow
---  , MonadIO
---  , Monad
---  , Applicative
---  , Functor
---  )
--- @
---
--- with:
---
--- @
--- runW :: W a -> IO a
--- runW = 'runMonadWorkflow' . getW
--- @
---
--- -}
--- runWorkflowT :: forall m a. (MonadIO m) => WorkflowT m a -> m a
--- runWorkflowT = iterT go
---  where
---  go :: WorkflowF (m a) -> m a
---  go = \case
---
---   SendKeyChord    flags key k      -> runSendKeyChord flags key >> k
---   SendText        s k              -> runSendText s >> k
---   -- TODO support Unicode by inserting "directly"
---   -- terminates because sendTextAsKeypresses is exclusively a sequence of SendKeyChord'es
---
---   -- TODO SendMouseClick  flags n button k -> Win32.clickMouse flags n button >> k
---
---   GetClipboard    f                -> liftIO (Win32.getClipboard) >>= f
---   SetClipboard    s k              -> liftIO (Win32.setClipboard s) >> k
---
---   CurrentApplication f             -> liftIO (Win32.currentApplication) >>= f
---   OpenApplication app k            -> liftIO (Win32.openApplication app) >> k
---   OpenURL         url k            -> liftIO (Win32.openURL url) >> k
---
---   Delay           t k              -> liftIO (threadDelay (t*1000)) >> k
---  -- 1,000 µs is 1ms
---
--- {-|
---
--- TODO support Unicode by inserting directly, not indirectly via keypresses
--- https://developer.apple.com/library/mac/documentation/Cocoa/Conceptual/EventOverview/HandlingKeyEvents/HandlingKeyEvents.html
--- Most key events—that is, those representing characters to be inserted as text—are dispatched by the NSWindow object associated with the key window to the first responder.
--- characters and charactersIgnoringModifiers—The responder can extract the Unicode character data associated with the event and insert it as text or interpret it as commands. The charactersIgnoringModifiers method ignores any modifier keystroke (except for Shift) when returning the character data. Note that both method names are plural because a keystroke can produce more than one character (for example, “à” is composed of ‘a’ and ‘`‘).
--- isARepeat—This method tells the responder whether the same key was pressed rapidly in succession.
---
--- -}
--- runSendText :: (MonadIO m) => String -> m ()
--- runSendText
---  = traverse_ (uncurry runSendKeyChord)
---  . concatMap char2keypress
---
--- runSendKeyChord :: (MonadIO m) => [Modifier] -> Key -> m ()
--- runSendKeyChord flags key = liftIO $ Win32.pressKey flags key
+import Workflow.Windows.Bindings as Win32
+import Workflow.Windows.Types
+import Workflow.Windows.Extra
+import Workflow.Types hiding (Application,URL)
+
+import Control.Monad.Free
+import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
+import Control.Monad.Trans.State
+
+import Control.Concurrent             (threadDelay)
+
+import Data.Foldable                  (traverse_)
+import Data.List                      (intercalate)
+import Data.Monoid                    ((<>))
+import Control.Monad.IO.Class
+
+
+runWorkflow :: Workflow a -> IO a
+runWorkflow = runWorkflowT . toFreeT
+
+{-|
+
+you can eliminate a custom monad:
+
+@
+newtype W a = W
+ { getW :: WorkflowT IO a
+ } deriving
+ ( MonadWorkflow
+ , MonadIO
+ , Monad
+ , Applicative
+ , Functor
+ )
+@
+
+with:
+
+@
+runW :: W a -> IO a
+runW = 'runMonadWorkflow' . getW
+@
+
+-}
+runWorkflowT :: forall m a. (MonadIO m) => WorkflowT m a -> m a
+runWorkflowT = iterT go
+ where
+ go :: WorkflowF (m a) -> m a
+ go = \case
+
+  SendKeyChord    modifiers key k  -> win32SendKeyChord modifiers key >> k
+  SendText        s k              -> Win32.sendText s >> k
+  -- TODO support Unicode by inserting "directly"
+  -- terminates because sendTextAsKeypresses is exclusively a sequence of SendKeyChord'es
+
+  -- TODO SendMouseClick  flags n button k -> Win32.clickMouse flags n button >> k
+
+  GetClipboard    f                -> Win32.getClipboard >>= f
+  SetClipboard    s k              -> Win32.setClipboard s >> k
+
+  CurrentApplication f             -> Win32.currentApplication >>= (getApplication >>> f)
+  OpenApplication app k            -> Win32.openApplication (Application app) >> k
+  OpenURL         url k            -> Win32.openUrl (URL url) >> k
+
+  Delay           t k              -> delayMilliseconds t >> k
+ -- 1,000 µs is 1ms
+
+win32SendKeyChord :: (MonadIO m) => [Modifier] -> Key -> m ()
+win32SendKeyChord modifiers key
+ = liftIO $ Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
+
+fromModifier :: Modifier -> VK
+fromModifier = \case
+ MetaModifier     -> VK_MENU
+ HyperModifier    -> VK_CONTROL
+ ControlModifier  -> VK_CONTROL
+ OptionModifier   -> VK_MENU
+ ShiftModifier    -> VK_SHIFT
+ FunctionModifier -> todo
+
+fromKey :: Key -> VK
+fromKey = \case
+ _ -> todo
