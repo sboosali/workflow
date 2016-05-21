@@ -8,5 +8,4 @@ stack build && stack exec -- workflow-types-example
 -}
 
 main = do
-  print $ readKeyBinding "H-S-t"  -- "re-open tab"
-  -- ([HyperModifier, ShiftModifier], TKey)
+  print $ readKeyBinding "H-S-t H-l"  -- "re-open tab", then "jump to url bar"

@@ -10,8 +10,8 @@ import qualified Data.Map as Map
 
 {-|
 
->>> readKeyBinding "H-S-t"  -- "re-open tab"
-Just [([HyperModifier,ShiftModifier],[TKey])]
+>>> readKeyBinding "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
+Just [([HyperModifier,ShiftModifier],[TKey]),([HyperModifier],[LKey])]
 
 -}
 readKeyBinding :: String -> Maybe KeyBinding --TODO Either ReadKeyBindingError / ErrorReadingKeyBinding
@@ -44,6 +44,7 @@ readModifier = (flip Map.lookup) table
 readKey :: Char -> Maybe Key --TODO string for non-alphanums like <spc>
 readKey = \case
  't'  -> Just TKey
+ 'l'  -> Just LKey
  _    -> Nothing
 
   -- <|> NoMod SpaceKey                             <$  E.word "<spc>"

@@ -32,11 +32,13 @@ library
 
  exposed-modules:
   Workflow.Types
+  Workflow.Derived
   Workflow.Keys
 
  -- other-modules:
   Workflow.Extra
   Workflow.Example
+  Workflow.Example.MTL
 
  build-depends:
     base >=4.7 && <5

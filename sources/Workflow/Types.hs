@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-|
 
@@ -6,16 +7,17 @@
 module Workflow.Types where
 import Workflow.Extra
 
-import Control.Monad.Free (MonadFree, Free)
 import Control.Monad.Trans.Free (FreeT)
 import Control.Monad.Free.Church  (F)
+import           Control.Monad.Free          (MonadFree, Free, liftF)
+import           Control.Monad.Free.TH       (makeFree)
 
 --import GHC.Exts
+
 
 {-|
 
 -}
-
 
 {- | platform-agnostic workflows,
 which can be interpreted by platform-specific bindings.
@@ -24,7 +26,7 @@ Naming: "WorkflowF" for "Workflow Functor".
 
 currently, no error codes are returned (only @()@)).
 this (1) simplifies bindings and
-(2) avoids explicitly ignoring action results (i.e. @_ <- getClipboard@).
+(2) saves the user from explicitly ignoring action results (e.g. @_ <- getClipboard@).
 later, they can be supported,
 alongside wrappers that return @()@ and throw @SomeException@
 and provide the same simple API.
@@ -61,7 +63,7 @@ data WorkflowF k
 
  | OpenURL         URL                              k
 
- | Delay           Time                             k
+ | Delay           MilliSeconds                             k -- interpreted as 'threadDelay' on all platforms; included for convenience
  -- TODO  | Annihilate      SomeException                       -- no k, it annihilates the action, for mzero and MonadThrow. violates monad laws?
  -- TODO   | PerformIO       (IO a)                           (a -> k)
  deriving (Functor)
@@ -72,6 +74,10 @@ data WorkflowF k
 a monad constraint for "workflow effects"
 (just like @MonadState@ is for "state effects").
 Can be used in any monad transformer stack that handles them.
+
+e.g.
+
+
 -}
 type MonadWorkflow = MonadFree WorkflowF
 
@@ -115,7 +121,7 @@ type Application = String
 
 type URL = String
 
-type Time = Int
+type MilliSeconds = Int
 -- newtype Time = Time Int  deriving (Show,Eq,Ord,Num)
 -- units package
 -- milliseconds
@@ -160,7 +166,7 @@ type Time = Int
 -}
 --newtype URL_ = URL String
   --deriving (Show,Read,Eq,Ord,IsString,Data,Generic,Semigroup,NFData)
-
+--TODO refined
 
 --------------------------------------------------------------------------------
 
@@ -171,6 +177,11 @@ Naming: TODO rename KeyboardShortcut
 -}
 type KeyBinding  = [KeyChord] --TODO NonEmpty KeyChord
 --TODO newtype for non-overlapping IsString
+-- instance IsString KCs where fromString =
+-- --TODO refined
+--
+-- press :: KCs -> m()
+--
 
 -- an (unordered, no-duplicates) sequence of key
 -- chords make up a keyboard shortcut
@@ -209,7 +220,7 @@ data Modifier
  = MetaModifier
  | HyperModifier
  | ControlModifier
- | OptionModifier
+ | OptionModifier --TODO rn Option Alt
  | ShiftModifier
  | FunctionModifier
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
@@ -228,13 +239,15 @@ paltform-specific virtual-key-codes in the dependent packages:
 -}
 data Key
 
- = ControlKey
+ = MetaKey -- ^ fake key: Alt on Linux/Windows, Command on OSX
+ | HyperKey -- ^ fake key: Control on Linux/Windows, Command on OSX
+-- Control/Command both have C/O/N
+
+ | ControlKey
  | CapsLockKey
  | ShiftKey
  | OptionKey
  | FunctionKey
- | MetaKey -- ^ fake key: Alt on Linux/Windows, Command on OSX
- | HyperKey -- ^ fake key: Control on Linux/Windows, Command on OSX
 
  | GraveKey
  | MinusKey
@@ -320,3 +333,5 @@ data Key
  | F20Key
 
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
+
+makeFree ''WorkflowF
