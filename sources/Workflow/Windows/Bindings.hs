@@ -155,10 +155,12 @@ getCursorPosition = do -- bracket malloc (\p -> c_GetCursorPos p >> peek p) free
 
 -- getByReference getter = bracket malloc (\p -> getter p >> peek p) free
 
--- setCursorPos :: POINT -> IO ()
--- setCursorPos = with malloc $ \p -> do
---   c_GetCursorPos p
---   peek p
+{-|
+
+-}
+setCursorPosition :: POINT -> IO ()
+setCursorPosition (POINT x y) = do
+  c_SetCursorPos (CInt x) (CInt y)
 
 -------------------------------------------------------------------------
 

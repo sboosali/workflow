@@ -38,6 +38,29 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h OpenApplication"
 foreign import CALLING_CONVENTION unsafe "Workflow.h OpenUrl"
  c_OpenUrl :: CWString -> IO ()
 
--- | reference parameter
+{-|
+
+(reference parameter).
+
+@
+BOOL WINAPI GetCursorPos(
+  _Out_ LPPOINT lpPoint
+);
+@
+
+-}
 foreign import CALLING_CONVENTION unsafe "Windows.h GetCursorPos"
  c_GetCursorPos :: Ptr POINT -> IO ()
+
+{-|
+
+@
+ BOOL WINAPI SetCursorPos(
+   _In_ int X,
+   _In_ int Y
+ );
+@
+
+-}
+foreign import CALLING_CONVENTION unsafe "Windows.h SetCursorPos"
+ c_SetCursorPos :: CInt -> CInt -> IO ()

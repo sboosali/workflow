@@ -35,3 +35,4 @@ main = do
  -- delayMilliseconds 1000
  -- scrollMouse ScrollAway 1000
  getCursorPosition >>= print
+ setCursorPosition (POINT 0 0)
