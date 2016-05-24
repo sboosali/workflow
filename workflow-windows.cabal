@@ -48,7 +48,7 @@ library
   , workflow-types
   , free
 
-  , c-storable-deriving
+  -- , c-storable-deriving
 
 -- $ stack build && stack exec workflow-windows-example
 executable workflow-windows-example
