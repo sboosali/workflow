@@ -1,12 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Workflow.Windows.Main where
 import Workflow.Windows
 import Workflow.Windows.Extra
 
+import Foreign.Var
+
+reverseClipboard = do
+ clipboard $~ reverse
+
+moveCursorToTopLeft = do
+ cursor $= POINT 0 0
+
+testVariables = do
+  putStrLn "\n- vars...\n"
+
+  reverseClipboard
+  print =<< get clipboard
+
+  moveCursorToTopLeft
+  print =<< get cursor
+
 {-
 stack build && stack exec workflow-windows-example
 -}
-testWorkflow :: IO ()
 testWorkflow = do
  contents <- getClipboard
  setClipboard (reverse contents)
@@ -32,12 +49,13 @@ testWindow s = do
  print $ not (isNull (getHWND w))
  getWindowRectangle w >>= print
 
-main :: IO ()
 main = do
  putStrLn "\nworkflow-windows-example...\n"
 
  putStr "\ndebug Privileges:"
  print =<< c_EnableDebugPriv
+
+ testVariables
 
  -- delayMilliseconds 4000
  --testWorkflow
@@ -48,9 +66,6 @@ main = do
  -- scrollMouse ScrollTowards 200
  -- delayMilliseconds 1000
  -- scrollMouse ScrollAway 1000
-
- getCursorPosition >>= print
- setCursorPosition (POINT 0 0)
 
  traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
   -- "OpusApp" no, "Emacs" no, "ConsoleWindowClass" no, "Chrome_WidgetWin_1"  yes -- (Window "" "Chrome_WidgetWin_1" "")

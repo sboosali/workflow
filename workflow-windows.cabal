@@ -36,6 +36,7 @@ library
   Workflow.Windows.Foreign
   Workflow.Windows.Bindings
   Workflow.Windows.Execute
+  Workflow.Windows.Variables
 
 -- other-modules:
   Workflow.Windows.Main
@@ -49,7 +50,9 @@ library
   , workflow-types
   , free
 
+  -- minimal dependencies
   , c-storable-deriving
+  , foreign-var
 
 -- $ stack build && stack exec workflow-windows-example
 executable workflow-windows-example

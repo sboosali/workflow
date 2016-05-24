@@ -35,6 +35,7 @@ getClipboard = liftIO $ c_GetClipboard >>= peekCWString
 setClipboard :: (MonadIO m) => String -> m ()
 setClipboard s = liftIO $ withCWString s c_SetClipboard
 
+
 --------------------------------------------------------------------------------
 
 {-| inserts some text into the current Application.
