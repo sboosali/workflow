@@ -8,6 +8,7 @@ module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
 import Workflow.Windows.Extra
 import Workflow.Windows.Foreign
+import Workflow.Windows.Constants
 
 import Foreign
 import Foreign.C

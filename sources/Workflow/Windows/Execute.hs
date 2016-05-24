@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts #-}
 module Workflow.Windows.Execute where
+import Workflow.Windows.Constants
 import Workflow.Windows.Bindings as Win32
 import Workflow.Windows.Types
 import Workflow.Windows.Extra

@@ -32,8 +32,9 @@ library
  exposed-modules:
   Workflow.Windows
   Workflow.Windows.Types
-  Workflow.Windows.Bindings
+  Workflow.Windows.Constants
   Workflow.Windows.Foreign
+  Workflow.Windows.Bindings
   Workflow.Windows.Execute
 
 -- other-modules:
