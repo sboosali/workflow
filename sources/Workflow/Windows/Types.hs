@@ -1,8 +1,8 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric, RecordWildCards #-}
 module Workflow.Windows.Types where
 import Workflow.Windows.Extra
 
-import Foreign.CStorable
+-- import Foreign.CStorable
 
 import Foreign
 import Foreign.C.Types
@@ -26,7 +26,21 @@ type DWORD = Word32
 toDWORD :: (Integral a) => a -> DWORD
 toDWORD = fromIntegral
 
-type LONG = Int64 -- CLong
+{-|
+
+@
+LONG
+A 32-bit signed integer. The range is –2147483648 through 2147483647 decimal.
+This type is declared in WinNT.h as follows:
+typedef long LONG;
+@
+
+see
+<https://msdn.microsoft.com/en-us/library/windows/desktop/aa383751(v=vs.85).aspx
+Windows Data Types>
+
+-}
+type LONG = Int32
 
 -- void* (in both Haskell and C)
 -- newtype HWND = HWND (Ptr ())
@@ -88,27 +102,23 @@ data MouseScroll
 
 -- type LPPOINT = Ptr POINT
 
-{-|
+-- type POINT =
+--   ( LONG  -- x
+--   , LONG  -- y
+--   )
+--
+-- pattern POINT x y = (x,y)
 
-TODO vinyl record
-GetCursorPos
-
- with malloc $ \p -> do
-  GetCursorPos p
-  sequence [peek p 0, peek p 4]
-
--}
-data POINT = POINT
- { _x :: LONG
- , _y :: LONG
- } deriving (Show,Generic)
-
-instance CStorable POINT
-instance Storable  POINT where
- peek      = cPeek
- poke      = cPoke
- alignment = cAlignment
- sizeOf    = cSizeOf
+-- {-|
+--
+-- TODO vinyl record
+-- GetCursorPos
+--
+--  with malloc $ \p -> do
+--   GetCursorPos p
+--   sequence [peek p 0, peek p 4]
+--
+-- -}
 
 {-|
 
@@ -119,25 +129,39 @@ struct POINT
     LONG  y;
 }
 @
+-}
+data POINT = POINT
+ { _x :: LONG
+ , _y :: LONG
+ } deriving (Show,Generic)
+
+-- instance CStorable POINT
+-- instance Storable  POINT where
+--  peek      = cPeek
+--  poke      = cPoke
+--  alignment = cAlignment
+--  sizeOf    = cSizeOf
 
 instance Storable POINT where
-  sizeOf _  = sizeOf (0::LONG) + sizeOf (0::LONG)
+  sizeOf _  = sizeOfLONG + sizeOfLONG
 
   -- "The entire structure is aligned on a boundary
   -- at least as big as the biggest value in the structure"
-  alignment = sizeOf (0::LONG)
+  alignment _ = sizeOfLONG
 
   -- peekByteOff address offset = peek (address `plusPtr` offset)
   peek p = do
-    _x <- peekByteOff p (0 * sizeOf (0::LONG))
-    _y <- peekByteOff p (4 * sizeOf (0::LONG))
+    _x <- peekByteOff p (0 * sizeOfLONG)
+    _y <- peekByteOff p (1 * sizeOfLONG)
     return POINT{..}
 
   -- pokeByteOff addr off x = poke (addr `plusPtr` off) x
   poke p POINT{..} = do
-    pokeByteOff p (0 * sizeOf (0::LONG)) _x
-    pokeByteOff p (4 * sizeOf (0::LONG)) _y
-    -}
+    pokeByteOff p (0 * sizeOfLONG) _x
+    pokeByteOff p (1 * sizeOfLONG) _y
+
+sizeOfLONG :: Int
+sizeOfLONG = sizeOf (undefined::LONG)
 
 --------------------------------------------------------------------------------
 

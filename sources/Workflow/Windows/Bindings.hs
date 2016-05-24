@@ -101,8 +101,8 @@ pressKeyUp = liftIO . c_PressKeyUp . getVK
 -- getClientSize :: (MonadIO m) => m RECT
 
 clickMouseAt :: (MonadIO m) => POINT -> Natural -> MOUSEEVENTF -> MOUSEEVENTF -> m ()
-clickMouseAt POINT{..} times down up
- = liftIO $ c_ClickMouseAt (toInt _x) (toInt _y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
+clickMouseAt (POINT x y) times down up = liftIO $
+ c_ClickMouseAt (toInt x) (toInt y) (toInt times) (getMOUSEEVENTF down) (getMOUSEEVENTF up)
 
 -- type IO' a = (MonadIO m) => m a
 
