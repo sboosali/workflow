@@ -1,4 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric, RecordWildCards, EmptyDataDecls #-}
+{-|
+
+Uppercased types are
+<https://msdn.microsoft.com/en-us/library/windows/desktop/aa383751(v=vs.85).aspx
+Windows Data Types>
+
+-}
 module Workflow.Windows.Types where
 import Workflow.Windows.Extra
 
@@ -35,10 +42,6 @@ This type is declared in WinNT.h as follows:
 typedef long LONG;
 @
 
-see
-<https://msdn.microsoft.com/en-us/library/windows/desktop/aa383751(v=vs.85).aspx
-Windows Data Types>
-
 -}
 type LONG = Int32
 
@@ -56,19 +59,10 @@ newtype HWND = HWND VoidStar
 getHWND :: HWND -> VoidStar
 getHWND (HWND p) = p
 
-newtype Application = Application String
- deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
+{-|
 
--- | (accessor)
-getApplication :: Application -> String
-getApplication (Application s) = s
-
-newtype URL = URL String
- deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
-
--- | (accessor)
-getURL :: URL -> String
-getURL (URL s) = s
+-}
+type BOOL = CInt
 
 {-|
 
@@ -108,19 +102,7 @@ getVK :: VK -> WORD
 getVK (VK n) = n
 -- manual accessor doesn't pollute Show instance
 
-data MouseButton
- = LeftButton
- | MiddleButton
- | RightButton
- | XButton
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
-
-data MouseScroll
-  = ScrollTowards -- ScrollUp (from user)
-  | ScrollAway -- ScrollDown (from user)
-  | ScrollLeft
-  | ScrollRight
-  deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
+--------------------------------------------------------------------------------
 
 -- type LPPOINT = Ptr POINT
 
@@ -196,6 +178,34 @@ instance Storable  RECT where
 
 --------------------------------------------------------------------------------
 
+newtype Application = Application String
+ deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
+
+-- | (accessor)
+getApplication :: Application -> String
+getApplication (Application s) = s
+
+newtype URL = URL String
+ deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
+
+-- | (accessor)
+getURL :: URL -> String
+getURL (URL s) = s
+
+data MouseButton
+ = LeftButton
+ | MiddleButton
+ | RightButton
+ | XButton
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
+
+data MouseScroll
+  = ScrollTowards -- ScrollUp (from user)
+  | ScrollAway -- ScrollDown (from user)
+  | ScrollLeft
+  | ScrollRight
+  deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
+
 {-|
 
 Non-unique. e.g. open two blank (chrome) browser windows, both will match:
@@ -239,6 +249,8 @@ aWindowTitle s = Window{..}
   windowExecutable = ""
   windowClass      = ""
   windowTitle      = s
+
+--------------------------------------------------------------------------------
 
 pattern ERROR_INVALID_WINDOW_HANDLE :: SystemErrorCode
 pattern ERROR_INVALID_WINDOW_HANDLE = 1400

@@ -35,6 +35,10 @@ testWindow s = do
 main :: IO ()
 main = do
  putStrLn "\nworkflow-windows-example...\n"
+
+ putStr "\ndebug Privileges:"
+ print =<< c_EnableDebugPriv
+
  -- delayMilliseconds 4000
  --testWorkflow
  --pressKeychord [] VK_VOLUME_MUTE
