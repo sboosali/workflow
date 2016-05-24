@@ -7,7 +7,6 @@ module Workflow.Windows.Extra
  , module Data.Foldable
  , module Export_
  ) where
-import Workflow.Windows.Types
 
 import Control.Arrow ((>>>))
 import Control.Concurrent (threadDelay)
@@ -20,9 +19,6 @@ import Control.Monad as Export_
 
 nothing :: IO ()
 nothing = return ()
-
-toDWORD :: (Integral a) => a -> DWORD
-toDWORD = fromIntegral
 
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)

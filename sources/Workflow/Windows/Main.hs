@@ -4,7 +4,7 @@ import Workflow.Windows
 import Workflow.Windows.Extra
 
 {-
-stack build && stack exec workflow-windows
+stack build && stack exec workflow-windows-example
 -}
 testWorkflow :: IO ()
 testWorkflow = do
@@ -25,7 +25,7 @@ testWorkflow = do
 main :: IO ()
 main = do
  print "workflow-windows-example..."
- delayMilliseconds 4000
+ -- delayMilliseconds 4000
  --testWorkflow
  --pressKeychord [] VK_VOLUME_MUTE
  -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
@@ -34,3 +34,4 @@ main = do
  -- scrollMouse ScrollTowards 200
  -- delayMilliseconds 1000
  -- scrollMouse ScrollAway 1000
+ getCursorPosition >>= print

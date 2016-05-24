@@ -2,9 +2,14 @@
 module Workflow.Windows.Foreign where
 import Workflow.Windows.Types
 
-import Foreign.C
+import Foreign.C.Types
+import Foreign.C.String (CWString)
+import Foreign.Ptr (Ptr)
 
 #include "calling_convention.h"
+
+--TODO unsafe?
+--
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h GetClipboard"
  c_GetClipboard :: IO CWString
@@ -32,3 +37,7 @@ foreign import CALLING_CONVENTION unsafe "Workflow.h OpenApplication"
 
 foreign import CALLING_CONVENTION unsafe "Workflow.h OpenUrl"
  c_OpenUrl :: CWString -> IO ()
+
+-- | reference parameter
+foreign import CALLING_CONVENTION unsafe "Windows.h GetCursorPos"
+ c_GetCursorPos :: Ptr POINT -> IO ()

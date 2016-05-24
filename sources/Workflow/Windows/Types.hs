@@ -1,13 +1,16 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric #-}
 module Workflow.Windows.Types where
+import Workflow.Windows.Extra
+
+import Foreign.CStorable
 
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 import GHC.Exts
 import Data.Ix (Ix)
-import Data.Data (Data)
 
+--TODO foreign-var-0.1
 
 type LPCWSTR = CWString
 
@@ -18,6 +21,10 @@ type UINT = Word32 -- CUInt
 type WORD = Word16
 
 type DWORD = Word32
+
+-- | (may overflow)
+toDWORD :: (Integral a) => a -> DWORD
+toDWORD = fromIntegral
 
 type LONG = Int64 -- CLong
 
@@ -79,6 +86,8 @@ data MouseScroll
   | ScrollRight
   deriving (Show,Enum)
 
+-- type LPPOINT = Ptr POINT
+
 {-|
 
 TODO vinyl record
@@ -92,7 +101,14 @@ GetCursorPos
 data POINT = POINT
  { _x :: LONG
  , _y :: LONG
- }
+ } deriving (Show,Generic)
+
+instance CStorable POINT
+instance Storable  POINT where
+ peek      = cPeek
+ poke      = cPoke
+ alignment = cAlignment
+ sizeOf    = cSizeOf
 
 {-|
 
@@ -104,7 +120,7 @@ struct POINT
 }
 @
 
-instance Storeable POINT where
+instance Storable POINT where
   sizeOf _  = sizeOf (0::LONG) + sizeOf (0::LONG)
 
   -- "The entire structure is aligned on a boundary

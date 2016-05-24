@@ -9,7 +9,9 @@ import Workflow.Windows.Types
 import Workflow.Windows.Extra
 import Workflow.Windows.Foreign
 
+import Foreign
 import Foreign.C
+import Foreign.C.String
 import Data.Char
 import Numeric.Natural
 import Control.Monad.IO.Class
@@ -139,6 +141,26 @@ openUrl :: (MonadIO m) => URL -> m () -- visitURL?
 openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 
 ------------------------------------------------------------------------
+
+{-|
+
+-}
+getCursorPosition :: IO POINT
+getCursorPosition = do -- bracket malloc (\p -> c_GetCursorPos p >> peek p) free
+  pp <- malloc
+  c_GetCursorPos pp
+  p <- peek pp
+  free pp -- free the 16 bytes of mem; peek has allocated a Haskell struture (it invokes the constructor).
+  return p
+
+-- getByReference getter = bracket malloc (\p -> getter p >> peek p) free
+
+-- setCursorPos :: POINT -> IO ()
+-- setCursorPos = with malloc $ \p -> do
+--   c_GetCursorPos p
+--   peek p
+
+-------------------------------------------------------------------------
 
 {-|
 
