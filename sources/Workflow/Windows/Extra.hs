@@ -16,6 +16,7 @@ import Data.Function ((&),on)
 import Data.Foldable (traverse_)
 import Control.Monad.IO.Class
 import Control.Monad as Export_
+import Foreign (Ptr,nullPtr)
 
 nothing :: IO ()
 nothing = return ()
@@ -33,3 +34,6 @@ toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
 
 todo :: a --TODO call stack
 todo = error "TODO"
+
+isNull :: Ptr a -> Bool
+isNull = (== nullPtr)

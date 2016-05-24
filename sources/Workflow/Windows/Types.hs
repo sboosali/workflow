@@ -1,8 +1,8 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric, RecordWildCards #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, PatternSynonyms, DeriveDataTypeable, DeriveGeneric, RecordWildCards, EmptyDataDecls #-}
 module Workflow.Windows.Types where
 import Workflow.Windows.Extra
 
--- import Foreign.CStorable
+import Foreign.CStorable
 
 import Foreign
 import Foreign.C.Types
@@ -42,21 +42,43 @@ Windows Data Types>
 -}
 type LONG = Int32
 
--- void* (in both Haskell and C)
+-- | @void*@
+type VoidStar = Ptr ()
+
+{-| an abstract handle to a window.
+
+-}
+-- data HWND = HWND
 -- newtype HWND = HWND (Ptr ())
 -- type HWND = Ptr ()
+newtype HWND = HWND VoidStar
+
+getHWND :: HWND -> VoidStar
+getHWND (HWND p) = p
 
 newtype Application = Application String
- deriving (Show, IsString)
+ deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
 
+-- | (accessor)
 getApplication :: Application -> String
 getApplication (Application s) = s
 
 newtype URL = URL String
- deriving (Show, IsString)
+ deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
 
+-- | (accessor)
 getURL :: URL -> String
 getURL (URL s) = s
+
+{-|
+
+see
+<https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+System Error Codes>
+
+-}
+newtype SystemErrorCode = SystemErrorCode DWORD
+ deriving (Bounded, Enum, Eq, Integral, Data, Num, Ord, Read, Real, Show, Ix, FiniteBits, Bits, Storable)
 
 {-|
 
@@ -91,14 +113,14 @@ data MouseButton
  | MiddleButton
  | RightButton
  | XButton
- deriving (Show,Enum)
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
 
 data MouseScroll
   = ScrollTowards -- ScrollUp (from user)
   | ScrollAway -- ScrollDown (from user)
   | ScrollLeft
   | ScrollRight
-  deriving (Show,Enum)
+  deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
 
 -- type LPPOINT = Ptr POINT
 
@@ -129,39 +151,97 @@ struct POINT
     LONG  y;
 }
 @
+
 -}
 data POINT = POINT
- { _x :: LONG
- , _y :: LONG
- } deriving (Show,Generic)
+ { xPOINT :: LONG
+ , yPOINT :: LONG
+ } deriving (Show,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
 
--- instance CStorable POINT
--- instance Storable  POINT where
---  peek      = cPeek
---  poke      = cPoke
---  alignment = cAlignment
---  sizeOf    = cSizeOf
+instance CStorable POINT
+instance Storable  POINT where
+ peek      = cPeek
+ poke      = cPoke
+ alignment = cAlignment
+ sizeOf    = cSizeOf
 
-instance Storable POINT where
-  sizeOf _  = sizeOfLONG + sizeOfLONG
+--------------------------------------------------------------------------------
 
-  -- "The entire structure is aligned on a boundary
-  -- at least as big as the biggest value in the structure"
-  alignment _ = sizeOfLONG
+{-|
 
-  -- peekByteOff address offset = peek (address `plusPtr` offset)
-  peek p = do
-    _x <- peekByteOff p (0 * sizeOfLONG)
-    _y <- peekByteOff p (1 * sizeOfLONG)
-    return POINT{..}
+@
+struct RECT
+{
+    LONG    left;
+    LONG    top;
+    LONG    right;
+    LONG    bottom;
+}
+@
 
-  -- pokeByteOff addr off x = poke (addr `plusPtr` off) x
-  poke p POINT{..} = do
-    pokeByteOff p (0 * sizeOfLONG) _x
-    pokeByteOff p (1 * sizeOfLONG) _y
+-}
+data RECT = RECT
+ { leftRECT   :: LONG
+ , topRECT    :: LONG
+ , rightRECT  :: LONG
+ , bottomRECT :: LONG
+ } deriving (Show,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
 
-sizeOfLONG :: Int
-sizeOfLONG = sizeOf (undefined::LONG)
+instance CStorable RECT
+instance Storable  RECT where
+ peek      = cPeek
+ poke      = cPoke
+ alignment = cAlignment
+ sizeOf    = cSizeOf
+
+--------------------------------------------------------------------------------
+
+{-|
+
+Non-unique. e.g. open two blank (chrome) browser windows, both will match:
+
+@
+Window{..}
+ where
+ windowExecutable = "chrome.exe"
+ windowClass      = "Chrome_WidgetWin_1"
+ windowTitle      = "New Tab - Google Chrome"
+@
+
+-}
+data Window = Window
+ { windowExecutable :: String
+ , windowClass      :: String
+ , windowTitle      :: String
+ } deriving (Show) --TODO
+
+-- | only the 'windowTitle'
+instance IsString Window where -- TODO Maybe String? Vinyl? Rec Id and Rec Maybe.
+ fromString = aWindowTitle
+
+aWindowExecutable :: String -> Window
+aWindowExecutable s = Window{..}
+  where
+  windowExecutable = s
+  windowClass      = ""
+  windowTitle      = ""
+
+aWindowClass :: String -> Window
+aWindowClass s = Window{..}
+  where
+  windowExecutable = ""
+  windowClass      = s
+  windowTitle      = ""
+
+aWindowTitle :: String -> Window
+aWindowTitle s = Window{..}
+  where
+  windowExecutable = ""
+  windowClass      = ""
+  windowTitle      = s
+
+pattern ERROR_INVALID_WINDOW_HANDLE :: SystemErrorCode
+pattern ERROR_INVALID_WINDOW_HANDLE = 1400
 
 --------------------------------------------------------------------------------
 

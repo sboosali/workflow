@@ -11,10 +11,12 @@ import Workflow.Windows.Foreign
 
 import Foreign
 import Foreign.C
-import Foreign.C.String
+-- import Foreign.C.String
 import Data.Char
 import Numeric.Natural
 import Control.Monad.IO.Class
+import Control.Exception (bracket)
+
 
 {-
 ::  -> IO ()
@@ -146,16 +148,10 @@ openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 
 -}
 getCursorPosition :: IO POINT
-getCursorPosition = do -- bracket malloc (\p -> c_GetCursorPos p >> peek p) free
-  pp <- malloc
-  c_GetCursorPos pp
-  p <- peek pp
-  free pp -- free the 16 bytes of mem; peek has allocated a Haskell struture (it invokes the constructor).
-  return p
-
--- getByReference getter = bracket malloc (\p -> getter p >> peek p) free
-
+getCursorPosition = getByReference c_GetCursorPos
 {-|
+
+(doesn't trigger @RSIGuard@'s @AutoClick@).
 
 -}
 setCursorPosition :: POINT -> IO ()
@@ -163,6 +159,30 @@ setCursorPosition (POINT x y) = do
   c_SetCursorPos (CInt x) (CInt y)
 
 -------------------------------------------------------------------------
+
+findWindow :: Window -> IO HWND
+findWindow Window{..} = do
+  withCWString windowClass $ \_windowClass -> do -- ContT IO?
+    withCWString windowTitle $ \_windowTitle -> do
+        HWND <$> c_FindWindow _windowClass _windowTitle --TODO _windowExecutable
+
+-- | TODO check against 'nullPtr'?
+getWindowRectangle :: HWND -> IO RECT
+getWindowRectangle (HWND w) = getByReference (c_GetWindowRect w)
+
+getLastError :: IO SystemErrorCode
+getLastError = SystemErrorCode <$> c_GetLastError
+
+-------------------------------------------------------------------------
+
+{- for reference-parameter "getters" (unary).
+
+-}
+getByReference :: (Storable a) => (Ptr a -> IO ()) -> IO a
+getByReference setter = bracket
+ malloc
+ free
+ (\p -> setter p >> peek p)
 
 {-|
 

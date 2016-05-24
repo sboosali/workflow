@@ -22,9 +22,19 @@ testWorkflow = do
  delayMilliseconds 1000
  scrollMouse ScrollAway 60 -- down (with my trackpad, "natural" scrolling disabled)
 
+testWindow s = do
+ putStrLn $ "\nwindowClass: " ++ s
+ w <- findWindow (aWindowClass s)
+ e <- c_GetLastError
+ putStr "GetLastError: "
+ print e
+ putStr "non-null: "
+ print $ not (isNull (getHWND w))
+ getWindowRectangle w >>= print
+
 main :: IO ()
 main = do
- print "workflow-windows-example..."
+ putStrLn "\nworkflow-windows-example...\n"
  -- delayMilliseconds 4000
  --testWorkflow
  --pressKeychord [] VK_VOLUME_MUTE
@@ -34,5 +44,17 @@ main = do
  -- scrollMouse ScrollTowards 200
  -- delayMilliseconds 1000
  -- scrollMouse ScrollAway 1000
+
  getCursorPosition >>= print
  setCursorPosition (POINT 0 0)
+
+ traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
+  -- "OpusApp" no, "Emacs" no, "ConsoleWindowClass" no, "Chrome_WidgetWin_1"  yes -- (Window "" "Chrome_WidgetWin_1" "")
+
+{- when minimized, negs:
+
+windowClass: Chrome_WidgetWin_1
+non-null: True
+RECT {leftRECT = -31992, topRECT = -31941, rightRECT = -31928, bottomRECT = -31877}
+
+-}
