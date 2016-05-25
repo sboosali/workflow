@@ -1,5 +1,6 @@
 {-| pure interpretations:
 
+* downcast workflows to lists of actions
 * display workflows by patching system variables
 
 -}

@@ -5,11 +5,67 @@ import Workflow.Types
 import Control.Monad.Free
 -- import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
 
+import Control.Monad
+import Control.Monad.Identity
 import Control.Monad.Trans.State
+import Control.Monad.Trans.Writer
+import Control.Monad.Trans.Maybe
 import Data.Foldable                  (traverse_)
 import Data.List                      (intercalate)
 import Data.Monoid                    ((<>))
+import Data.Function                    ((&))
 
+
+{-| downcasts a monad to a list of functors.
+
+e.g.
+
+>>> isSimpleWorkflow $ getClipboard >>= sendText
+Nothing
+
+>>> isSimpleWorkflow $ setClipboard "copying..." >> sendKeyChord [HyperModifier] CKey
+...
+
+@
+Just [SetClipboard "copying..." (),SendKeyChord [HyperModifier] CKey ()]
+@
+
+TODO When 'Just':
+
+@
+'isSimpleWorkflow' >>> fromJust >>> 'traverse_' 'liftF' === 'id'
+@
+
+-}
+isSimpleWorkflow :: Workflow x -> Maybe [WorkflowF ()]
+isSimpleWorkflow m = (runIdentity . runMaybeT . execWriterT) (goM m)
+
+ where
+ log = tell . (:[])
+
+ goM :: Workflow x -> SimpleWorkflowM ()
+ goM = \case
+  Pure x -> return ()
+  Free a -> goF a
+
+ goF :: WorkflowF (Workflow x) -> SimpleWorkflowM ()
+ goF = \case
+
+  -- simple
+  SendKeyChord    flags key k -> log (SendKeyChord    flags key ()) >> goM k
+  SendText        s         k -> log (SendText        s         ()) >> goM k
+  SendMouseClick    flags n button k -> log (SendMouseClick    flags n button ()) >> goM k
+  SendMouseScroll   flags scroll n k -> log (SendMouseScroll   flags scroll n ()) >> goM k
+  SetClipboard    s k         -> log (SetClipboard    s   ()) >> goM k
+  OpenApplication app k       -> log (OpenApplication app ()) >> goM k
+  OpenURL         url k       -> log (OpenURL         url ()) >> goM k
+  Delay           t k         -> log (Delay           t   ()) >> goM k
+
+  -- complex
+  GetClipboard _ -> mzero
+  CurrentApplication _ -> mzero
+
+type SimpleWorkflowM = WriterT [WorkflowF ()] (MaybeT Identity)
 
 {- | shows (an inaccurate approximation of) the
 "static" data flow of some 'Workflow',
@@ -52,14 +108,15 @@ distinguished (as sendTextTo =<< currentApplication is kinda Applicative).
 
 -}
 showWorkflow :: (Show x) => Workflow x -> String
-showWorkflow as = "do\n" <> evalState (showWorkflow_ as) 1
+showWorkflow m = "do\n" <> (evalState&flip) 1 (showWorkflow_ m)
 
  where
- showWorkflow_ :: (Show x) => Workflow x -> State Gensym String
- showWorkflow_ (Pure x) = return $ " return " <> show x <> "\n"
- showWorkflow_ (Free a) = showWorkflowF a
+ showWorkflow_ :: (Show x) => Workflow x -> GensymM String
+ showWorkflow_ = \case
+  Pure x -> return $ " return " <> show x <> "\n"
+  Free a -> showWorkflowF a
 
- showWorkflowF :: (Show x) => WorkflowF (Workflow x) -> State Gensym String
+ showWorkflowF :: (Show x) => WorkflowF (Workflow x) -> GensymM String
  showWorkflowF = \case
   SendKeyChord    flags key k -> ((" sendKeyChord "    <> showArgs [show flags, show key]) <>)       <$> showWorkflow_ k
   -- TODO SendMouseClick  flags n b k -> ((" sendMouseClick "  <> showArgs [show flags, show n, show b]) <>) <$> showWorkflow_ k
@@ -96,4 +153,24 @@ showWorkflow as = "do\n" <> evalState (showWorkflow_ as) 1
   put $ i + 1
   return $ "x" <> show i
 
+type GensymM = State Gensym
+
 type Gensym = Int
+
+{-
+
+ \case
+
+ SendKeyChord    flags key k  ->  k
+ SendText        s k          ->  k
+ SendMouseClick    flags n button k ->  k
+ SendMouseScroll   flags scroll n k ->  k
+ SetClipboard    s k         ->  k
+ OpenApplication app k       ->  k
+ OpenURL         url k       ->  k
+ Delay           t k         ->  k
+
+ GetClipboard f ->  f
+ CurrentApplication f ->  f
+
+-}
