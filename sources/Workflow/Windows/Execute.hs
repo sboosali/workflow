@@ -1,4 +1,11 @@
-{-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts, ViewPatterns #-}
+{-|
+
+high-level bindings.
+
+Glue between "Workflow.Types" and "Workflow.Windows.Types".
+
+-}
 module Workflow.Windows.Execute where
 import Workflow.Windows.Constants
 import Workflow.Windows.Bindings as Win32
@@ -9,15 +16,16 @@ import Workflow.Types hiding (Application,URL)
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
 
+import Numeric.Natural
 import Control.Monad.IO.Class
 
 
 runWorkflow :: Workflow a -> IO a
 runWorkflow = runWorkflowT . toFreeT
 
-{-|
+{-| eliminate a 'WorkflowT' layer.
 
-you can eliminate a custom monad:
+e.g. some custom monad:
 
 @
 newtype W a = W
@@ -31,11 +39,11 @@ newtype W a = W
  )
 @
 
-with:
+specializing:
 
 @
 runW :: W a -> IO a
-runW = 'runMonadWorkflow' . getW
+runW = 'runWorkflowT' . getW
 @
 
 -}
@@ -45,7 +53,7 @@ runWorkflowT = iterT go
  go :: WorkflowF (m a) -> m a
  go = \case
 
-  SendKeyChord    modifiers key k  -> win32SendKeyChord modifiers key >> k
+  SendKeyChord    modifiers key k  -> sendKeyChord_Win32 modifiers key >> k
   SendText        s k              -> Win32.sendText s >> k
   -- TODO support Unicode by inserting "directly"
   -- terminates because sendTextAsKeypresses is exclusively a sequence of SendKeyChord'es
@@ -62,19 +70,62 @@ runWorkflowT = iterT go
   Delay           t k              -> delayMilliseconds t >> k
  -- 1,000 µs is 1ms
 
---------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 
-win32SendKeyChord :: (MonadIO m) => [Modifier] -> Key -> m ()
-win32SendKeyChord modifiers key
- = liftIO $ Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
+clickMouseAt_Win32
+ :: (MonadIO m) => MouseButton -> Natural -> (LONG,LONG) -> m ()
+clickMouseAt_Win32 (encodeMouseButton -> (down, up)) n (x,y)
+ = Win32.clickMouseAt (POINT x y) n down up
+--TODO type for screen coordinates. more than point. abs/rel. (bounded instance for rel).
+
+scrollMouse_Win32
+ :: (MonadIO m) => MouseScroll -> Natural -> m ()
+scrollMouse_Win32 (encodeMouseScroll -> (wheel, direction))
+ = Win32.scrollMouse wheel direction
+
+{-|
+
+@
+(wheel, direction) = encodeMouseScroll
+@
+
+-}
+encodeMouseScroll :: MouseScroll -> (MOUSEEVENTF, DWORD)
+encodeMouseScroll = \case
+    ScrollTowards -> (MOUSEEVENTF_WHEEL,   1)
+    ScrollAway    -> (MOUSEEVENTF_WHEEL,  -1)
+    ScrollRight   -> (MOUSEEVENTF_HWHEEL,  1)
+    ScrollLeft    -> (MOUSEEVENTF_HWHEEL, -1)
+
+{-|
+
+@
+(downEvent, upEvent) = encodeMouseButton
+@
+
+-}
+encodeMouseButton :: MouseButton -> (MOUSEEVENTF,MOUSEEVENTF)
+encodeMouseButton = \case
+ LeftButton   -> (MOUSEEVENTF_LEFTDOWN   , MOUSEEVENTF_LEFTUP)
+ MiddleButton -> (MOUSEEVENTF_MIDDLEDOWN , MOUSEEVENTF_MIDDLEUP)
+ RightButton  -> (MOUSEEVENTF_RIGHTDOWN  , MOUSEEVENTF_RIGHTUP)
+ -- XButton      -> (MOUSEEVENTF_XDOWN      , MOUSEEVENTF_XUP)
+
+-----------------------------------------------------------------------------------------
+
+sendKeyChord_Win32 :: (MonadIO m) => [Modifier] -> Key -> m ()
+sendKeyChord_Win32 modifiers key
+ = Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
 
 {-|
 
 -}
 fromModifier :: Modifier -> VK
 fromModifier = \case
+-- "virtual, virtual" modifiers
  MetaModifier     -> VK_MENU
  HyperModifier    -> VK_CONTROL
+ -- "actual, virtual" modifiers
  ControlModifier  -> VK_CONTROL
  OptionModifier   -> VK_MENU
  ShiftModifier    -> VK_SHIFT
@@ -87,8 +138,11 @@ fromKey :: Key -> VK
 fromKey = \case
 
  -- "virtual, virtual" keys
+
  MetaKey -> VK_MENU
  HyperKey -> VK_CONTROL
+
+ -- "actual, virtual" keys
 
  ControlKey -> VK_CONTROL
  CapsLockKey -> VK_CAPITAL

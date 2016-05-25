@@ -1,4 +1,9 @@
 {-# LANGUAGE ForeignFunctionInterface, CPP #-}
+{-|
+
+low-level bindings.
+
+-}
 module Workflow.Windows.Foreign where
 import Workflow.Windows.Types
 

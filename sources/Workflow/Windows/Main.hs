@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, NegativeLiterals #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Workflow.Windows.Main where
 import Workflow.Windows
@@ -35,9 +35,9 @@ testWorkflow = do
  openUrl "http://google.com"
  --clickMouseAt windowsMouse (POINT (maxBound `div` 2) minBound) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
  clickMouseAt (POINT 800 10) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
- scrollMouse ScrollTowards 120 -- up (with my trackpad, "natural" scrolling disabled)
+ scrollMouse MOUSEEVENTF_WHEEL 1 120 -- up (with my trackpad, "natural" scrolling disabled)
  delayMilliseconds 1000
- scrollMouse ScrollAway 60 -- down (with my trackpad, "natural" scrolling disabled)
+ scrollMouse MOUSEEVENTF_WHEEL -1 60 -- down (with my trackpad, "natural" scrolling disabled)
 
 testWindow s = do
  putStrLn $ "\nwindowClass: " ++ s
@@ -53,7 +53,7 @@ main = do
  putStrLn "\nworkflow-windows-example...\n"
 
  putStr "\ndebug Privileges:"
- print =<< c_EnableDebugPriv
+ print =<< c_EnableDebugPriv -- doesnt seem to be necessary
 
  testVariables
 
@@ -63,15 +63,12 @@ main = do
  -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
  -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
  -- replicateM_ 2 $ pressKeychord [VK_MENU] VK_F -- press "A-f"
- -- scrollMouse ScrollTowards 200
- -- delayMilliseconds 1000
- -- scrollMouse ScrollAway 1000
 
  -- traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
   -- "OpusApp" no, "Emacs" no, "ConsoleWindowClass" no, "Chrome_WidgetWin_1"  yes -- (Window "" "Chrome_WidgetWin_1" "")
 
- pressKeychord [] VK_OEM_PLUS
- pressKeychord [VK_SHIFT] VK_OEM_PLUS
+ -- pressKeychord [] VK_OEM_PLUS  -- "="
+ -- pressKeychord [VK_SHIFT] VK_OEM_PLUS -- "+"
 
 {- when minimized, negs:
 

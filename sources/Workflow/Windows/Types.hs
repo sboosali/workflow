@@ -176,7 +176,7 @@ instance Storable  RECT where
  alignment = cAlignment
  sizeOf    = cSizeOf
 
---------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------
 
 newtype Application = Application String
  deriving (Show,IsString,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
@@ -191,20 +191,6 @@ newtype URL = URL String
 -- | (accessor)
 getURL :: URL -> String
 getURL (URL s) = s
-
-data MouseButton
- = LeftButton
- | MiddleButton
- | RightButton
- | XButton
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
-
-data MouseScroll
-  = ScrollTowards -- ScrollUp (from user)
-  | ScrollAway -- ScrollDown (from user)
-  | ScrollLeft
-  | ScrollRight
-  deriving (Show,Read,Eq,Ord,Enum,Bounded,Generic,Data)--,NFData,Semigroup,Monoid)
 
 {-|
 
@@ -249,3 +235,5 @@ aWindowTitle s = Window{..}
   windowExecutable = ""
   windowClass      = ""
   windowTitle      = s
+
+-----------------------------------------------------------------------------------------

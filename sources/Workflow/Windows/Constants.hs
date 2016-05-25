@@ -547,7 +547,7 @@ pattern VK_LAUNCH_APP2 = 0xB7
 -- | @;:@ for the US
 pattern VK_OEM_1 :: VK
 pattern VK_OEM_1 = 0xBA
--- | @+@ any country
+-- | @+@ any country (@=+@ for the US)
 pattern VK_OEM_PLUS :: VK
 pattern VK_OEM_PLUS = 0xBB
 -- | @,@ | any country

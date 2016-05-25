@@ -1,14 +1,16 @@
 {-# LANGUAGE ViewPatterns, RecordWildCards #-}
 {-|
 
-all derived in Haskell
+medium-level bindings.
+
+(all derived in Haskell. TODO wat?)
 
 -}
 module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
 import Workflow.Windows.Extra
 import Workflow.Windows.Foreign
-import Workflow.Windows.Constants
+-- import Workflow.Windows.Constants
 
 import Foreign
 import Foreign.C
@@ -115,11 +117,16 @@ clickMouseAt (POINT x y) times down up = liftIO $
 distance: 120 units is about one "tick" of the wheel
 (i.e. a few dozen nudges the screen).
 
+input:
+
+* 'True' is towards
+* 'False' is away
+
 -}
-scrollMouse :: (MonadIO m) => MouseScroll -> Natural -> m () --TODO reversed? or my trackpad settings?
-scrollMouse (encodeMouseScroll -> (wheel, direction)) distance = liftIO $ c_ScrollMouseWheel
+scrollMouse :: (MonadIO m) => MOUSEEVENTF -> DWORD -> Natural -> m ()
+scrollMouse wheel direction distance = liftIO $ c_ScrollMouseWheel
  (wheel & getMOUSEEVENTF)
- (direction)
+ direction -- (if direction then 1 else -1) -- seems to work, even though Word's are unsigned.
  (distance & toDWORD)
 
 --GetCursorPos
@@ -191,31 +198,3 @@ getByReference setter = bracket
  --  malloc
  --  free
  --  (\p -> setter p >> liftIO (peek p))
-
-{-|
-
-@
-(wheel, direction) = encodeMouseScroll
-@
-
--}
-encodeMouseScroll :: MouseScroll -> (MOUSEEVENTF, DWORD)
-encodeMouseScroll = \case
-    ScrollTowards -> (MOUSEEVENTF_WHEEL,   1)
-    ScrollAway    -> (MOUSEEVENTF_WHEEL,  -1)
-    ScrollRight   -> (MOUSEEVENTF_HWHEEL,  1)
-    ScrollLeft    -> (MOUSEEVENTF_HWHEEL, -1)
-
-{-|
-
-@
-(downEvent, upEvent) = encodeMouseButton
-@
-
--}
-encodeMouseButton :: MouseButton -> (MOUSEEVENTF,MOUSEEVENTF)
-encodeMouseButton = \case
- LeftButton   -> (MOUSEEVENTF_LEFTDOWN   , MOUSEEVENTF_LEFTUP)
- MiddleButton -> (MOUSEEVENTF_MIDDLEDOWN , MOUSEEVENTF_MIDDLEUP)
- RightButton  -> (MOUSEEVENTF_RIGHTDOWN  , MOUSEEVENTF_RIGHTUP)
- XButton      -> (MOUSEEVENTF_XDOWN      , MOUSEEVENTF_XUP)
