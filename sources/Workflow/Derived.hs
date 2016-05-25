@@ -3,6 +3,11 @@ import Workflow.Types
 
 import Control.Monad.Trans.Free (intersperseT)
 -- import Control.Monad.Free
+import Control.Concurrent (threadDelay)
+import Control.Monad.IO.Class
+
+delayMilliseconds :: (MonadIO m) => Int -> m ()
+delayMilliseconds = liftIO . threadDelay . (*1000)
 
 {-| intersperse a delay between each action.
 

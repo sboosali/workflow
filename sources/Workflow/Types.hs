@@ -1,6 +1,10 @@
 {-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+{-# OPTIONS_GHC -ddump-splices #-}
+-- for `makeFree`
+
 {-|
 
 -}
@@ -170,12 +174,55 @@ type MilliSeconds = Int
 
 --------------------------------------------------------------------------------
 
-{-| a sequence of key chords make up a keyboard shortcut
+{-| Operating systems always (?) support at least these mouse events.
 
-Naming: TODO rename KeyboardShortcut
+Most mice have these three buttons, trackpads have left/right.
 
 -}
-type KeyBinding  = [KeyChord] --TODO NonEmpty KeyChord
+data MouseButton
+ = LeftButton
+ | MiddleButton
+ | RightButton
+ --TODO | XButton -- https://msdn.microsoft.com/en-us/library/windows/desktop/gg153549(v=vs.85).aspx
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic,NFData)
+
+{-| Mouse wheel scrolling, vertically and horizontally.
+
+'ScrollTowards':
+
+* scrolls up when "natural scrolling" is disabled
+* scrolls down when "natural scrolling" is enabled TODO check
+
+-}
+data MouseScroll
+  = ScrollTowards -- ScrollUp (from user)
+  | ScrollAway -- ScrollDown (from user)
+  | ScrollLeft
+  | ScrollRight
+  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic,NFData)
+
+--------------------------------------------------------------------------------
+
+-- {-| Represents @a@ being bound to a keyboard shortcut.
+--
+-- Naming:
+-- <https://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Commands.html>
+--
+-- -}
+-- data KeyBinding a = KeyBinding KeySequence a
+--TODO mv to commands-core or something
+
+{-| a sequence of key chords make up a keyboard shortcut
+
+Naming:
+<https://www.emacswiki.org/emacs/KeySequence>
+
+TODO rename KeySequence
+
+-}
+type KeyBinding = [KeyChord]
+-- newtype KeySequence = KeySequence (NonEmpty KeyChord)
+--
 --TODO newtype for non-overlapping IsString
 -- instance IsString KCs where fromString =
 -- --TODO refined
