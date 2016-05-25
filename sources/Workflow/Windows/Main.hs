@@ -30,7 +30,7 @@ testWorkflow = do
  print contents
  sendChar 'c'
  sendText "sendText"
- pressKeychord [VK_CONTROL] VK_A -- press "C-a"
+ pressKeyChord [VK_CONTROL] VK_A -- press "C-a"
  openApplication "cmd.exe"
  openUrl "http://google.com"
  --clickMouseAt windowsMouse (POINT (maxBound `div` 2) minBound) 2 MOUSEEVENTF_LEFTDOWN MOUSEEVENTF_LEFTUP
@@ -59,16 +59,16 @@ main = do
 
  -- delayMilliseconds 4000
  --testWorkflow
- --pressKeychord [] VK_VOLUME_MUTE
- -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
- -- pressKeychord [] VK_MEDIA_PLAY_PAUSE
- -- replicateM_ 2 $ pressKeychord [VK_MENU] VK_F -- press "A-f"
+ --pressKeyChord [] VK_VOLUME_MUTE
+ -- pressKeyChord [] VK_MEDIA_PLAY_PAUSE
+ -- pressKeyChord [] VK_MEDIA_PLAY_PAUSE
+ -- replicateM_ 2 $ pressKeyChord [VK_MENU] VK_F -- press "A-f"
 
  -- traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
   -- "OpusApp" no, "Emacs" no, "ConsoleWindowClass" no, "Chrome_WidgetWin_1"  yes -- (Window "" "Chrome_WidgetWin_1" "")
 
- -- pressKeychord [] VK_OEM_PLUS  -- "="
- -- pressKeychord [VK_SHIFT] VK_OEM_PLUS -- "+"
+ -- pressKeyChord [] VK_OEM_PLUS  -- "="
+ -- pressKeyChord [VK_SHIFT] VK_OEM_PLUS -- "+"
 
 {- when minimized, negs:
 

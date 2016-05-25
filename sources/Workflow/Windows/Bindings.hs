@@ -81,15 +81,14 @@ holdingKeys keys = bracket_
 --  (pressKeyUp   `traverse_` keys)
 --  action
 
-pressKeychord :: (MonadIO m) => [VK] -> VK -> m () --TODO rn KeyChord
-pressKeychord modifiers key = do
-  pressKeyDown `traverse_` modifiers
-  pressKeyDown key
-  pressKeyUp   key
-  pressKeyUp   `traverse_` (reverse modifiers)
+pressKeyChord :: (MonadIO m) => [VK] -> VK -> m () --TODO rn KeyChord
+pressKeyChord modifiers key = liftIO $ do
+  holdingKeys modifiers $ do
+      pressKeyDown key
+      pressKeyUp   key
 
 pressKey :: (MonadIO m) => VK -> m ()
-pressKey key = do
+pressKey key = liftIO $ do
  pressKeyDown key
  pressKeyUp   key
 
@@ -100,15 +99,15 @@ milliseconds
 -}
 pressKeyDelaying :: (MonadIO m) => Int -> VK -> m ()
 pressKeyDelaying t key = do
- pressKeyDown key
+ liftIO $ pressKeyDown key
  delayMilliseconds t -- TODO is threadDelay 0 like noop?
- pressKeyUp   key
+ liftIO $ pressKeyUp   key
 
-pressKeyDown :: (MonadIO m) => VK -> m ()
-pressKeyDown = liftIO . c_PressKeyDown . getVK
+pressKeyDown :: VK -> IO ()
+pressKeyDown = c_PressKeyDown . getVK
 
-pressKeyUp :: (MonadIO m) => VK -> m ()
-pressKeyUp = liftIO . c_PressKeyUp . getVK
+pressKeyUp :: VK -> IO ()
+pressKeyUp = c_PressKeyUp . getVK
 
 --------------------------------------------------------------------------------
 

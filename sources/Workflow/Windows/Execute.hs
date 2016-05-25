@@ -124,7 +124,7 @@ encodeMouseButton = \case
 
 sendKeyChord_Win32 :: (MonadIO m) => [Modifier] -> Key -> m ()
 sendKeyChord_Win32 modifiers key
- = Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
+ = Win32.pressKeyChord (fromModifier <$> modifiers) (fromKey key)
 
 {-|
 
