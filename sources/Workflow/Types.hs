@@ -12,7 +12,7 @@ module Workflow.Types where
 import Workflow.Extra
 
 import Control.Monad.Trans.Free (FreeT)
-import Control.Monad.Free.Church  (F)
+-- import Control.Monad.Free.Church  (F)
 import           Control.Monad.Free          (MonadFree, Free, liftF)
 import           Control.Monad.Free.TH       (makeFree)
 import Numeric.Natural
@@ -83,6 +83,25 @@ data WorkflowF k
 
 --------------------------------------------------------------------------------
 
+{-| the non-monadic subset of 'WorkflowF'.
+i.e. all cases that return @()@, preserving the previous continuation.
+
+Naming: "unit workflow", like "traverse_".
+
+-}
+data Workflow_
+ = SendKeyChord_    [Modifier] Key
+ | SendText_        String
+ | SendMouseClick_  [Modifier] Natural MouseButton
+ | SendMouseScroll_ [Modifier] MouseScroll Natural
+ | SetClipboard_    Clipboard
+ | OpenApplication_ Application
+ | OpenURL_         URL
+ | Delay_           MilliSeconds
+ deriving (Show,Read,Eq,Ord,Data,Generic,NFData)
+
+--------------------------------------------------------------------------------
+
 {- | abstract interface.
 
 a monad constraint for "workflow effects"
@@ -116,16 +135,8 @@ type MonadWorkflow = MonadFree WorkflowF
 -- | concrete transformer.
 type WorkflowT = FreeT WorkflowF
 
-{-| concrete monad.
-
--}
+-- | concrete monad.
 type Workflow = Free WorkflowF
-type Workflow_ = Workflow ()
--- TODO type Workflow = WorkflowT Identity
-
--- | church-encoded
-type CWorkflow = F WorkflowF --TODO
-type CWorkflow_ = CWorkflow () --TODO
 
 --------------------------------------------------------------------------------
 
@@ -393,3 +404,18 @@ data Key
 
 --------------------------------------------------------------------------------
 makeFree ''WorkflowF
+
+fromWorkflow_ :: (MonadWorkflow m) => [Workflow_] -> m ()
+fromWorkflow_ = traverse_ go
+ where
+ go = \case
+  SendKeyChord_    flags key      -> liftF $ SendKeyChord     flags key      ()
+  SendText_        s              -> liftF $ SendText         s              ()
+  SendMouseClick_  flags n button -> liftF $ SendMouseClick   flags n button ()
+  SendMouseScroll_ flags scroll n -> liftF $ SendMouseScroll  flags scroll n ()
+  SetClipboard_    s              -> liftF $ SetClipboard     s              ()
+  OpenApplication_ app            -> liftF $ OpenApplication  app            ()
+  OpenURL_         url            -> liftF $ OpenURL          url            ()
+  Delay_           t              -> liftF $ Delay            t              ()
+
+--------------------------------------------------------------------------------
