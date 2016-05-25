@@ -24,20 +24,16 @@ e.g.
 Nothing
 
 >>> isSimpleWorkflow $ setClipboard "copying..." >> sendKeyChord [HyperModifier] CKey
-...
-
-@
 Just [SetClipboard "copying..." (),SendKeyChord [HyperModifier] CKey ()]
-@
 
 TODO When 'Just':
 
 @
-'isSimpleWorkflow' >>> fromJust >>> 'traverse_' 'liftF' === 'id'
+'isSimpleWorkflow' >>> fromJust >>> 'fromWorkflow_' === 'id'
 @
 
 -}
-isSimpleWorkflow :: Workflow x -> Maybe [WorkflowF ()]
+isSimpleWorkflow :: Workflow x -> Maybe [Workflow_]
 isSimpleWorkflow m = (runIdentity . runMaybeT . execWriterT) (goM m)
 
  where
@@ -52,20 +48,20 @@ isSimpleWorkflow m = (runIdentity . runMaybeT . execWriterT) (goM m)
  goF = \case
 
   -- simple
-  SendKeyChord    flags key k -> log (SendKeyChord    flags key ()) >> goM k
-  SendText        s         k -> log (SendText        s         ()) >> goM k
-  SendMouseClick    flags n button k -> log (SendMouseClick    flags n button ()) >> goM k
-  SendMouseScroll   flags scroll n k -> log (SendMouseScroll   flags scroll n ()) >> goM k
-  SetClipboard    s k         -> log (SetClipboard    s   ()) >> goM k
-  OpenApplication app k       -> log (OpenApplication app ()) >> goM k
-  OpenURL         url k       -> log (OpenURL         url ()) >> goM k
-  Delay           t k         -> log (Delay           t   ()) >> goM k
+  SendKeyChord    flags key k -> log (SendKeyChord_    flags key) >> goM k
+  SendText        s         k -> log (SendText_        s        ) >> goM k
+  SendMouseClick    flags n button k -> log (SendMouseClick_    flags n button) >> goM k
+  SendMouseScroll   flags scroll n k -> log (SendMouseScroll_   flags scroll n) >> goM k
+  SetClipboard    s k         -> log (SetClipboard_    s  ) >> goM k
+  OpenApplication app k       -> log (OpenApplication_ app) >> goM k
+  OpenURL         url k       -> log (OpenURL_         url) >> goM k
+  Delay           t k         -> log (Delay_           t  ) >> goM k
 
   -- complex
   GetClipboard _ -> mzero
   CurrentApplication _ -> mzero
 
-type SimpleWorkflowM = WriterT [WorkflowF ()] (MaybeT Identity)
+type SimpleWorkflowM = WriterT [Workflow_] (MaybeT Identity)
 
 {- | shows (an inaccurate approximation of) the
 "static" data flow of some 'Workflow',
