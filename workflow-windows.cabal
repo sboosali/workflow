@@ -52,7 +52,7 @@ library
 
   -- minimal dependencies
   , c-storable-deriving
-  , foreign-var
+  , StateVar
 
 -- $ stack build && stack exec workflow-windows-example
 executable workflow-windows-example

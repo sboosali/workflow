@@ -4,7 +4,7 @@ module Workflow.Windows.Main where
 import Workflow.Windows
 import Workflow.Windows.Extra
 
-import Foreign.Var
+import Data.StateVar
 
 reverseClipboard = do
  clipboard $~ reverse

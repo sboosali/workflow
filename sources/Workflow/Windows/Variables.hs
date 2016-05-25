@@ -1,6 +1,6 @@
 {-|
 
-integration with the `foreign-var` package.
+integration with the `StateVar` package.
 
 e.g.
 
@@ -19,16 +19,16 @@ module Workflow.Windows.Variables where
 import Workflow.Windows.Types
 import Workflow.Windows.Bindings
 
-import Foreign.Var
+import Data.StateVar
 
-clipboard :: Var String
-clipboard = Var getClipboard setClipboard
+clipboard :: StateVar String
+clipboard = StateVar getClipboard setClipboard
 
-cursor :: Var POINT
-cursor = Var getCursorPosition setCursorPosition -- moveMouse
+cursor :: StateVar POINT
+cursor = StateVar getCursorPosition setCursorPosition -- moveMouse
 
--- application :: Var String
+-- application :: StateVar String
 -- application = currentApplication launchApplication
 --
--- window :: Var Window
+-- window :: StateVar Window
 -- window = currentWindow activateWindow
