@@ -63,7 +63,7 @@ pattern MOUSEEVENTF_ABSOLUTE = 0x8000
 
 --------------------------------------------------------------------------------
 
--- |
+-- | backwards delete, @BACKSPACE@ key
 pattern VK_BACK :: VK
 pattern VK_BACK = 0x08
 
@@ -75,7 +75,7 @@ pattern VK_TAB = 0x09
 pattern VK_CLEAR :: VK
 pattern VK_CLEAR = 0x0C
 
--- |
+-- | @ENTER@ key
 pattern VK_RETURN :: VK
 pattern VK_RETURN = 0x0D
 -- |
@@ -85,7 +85,7 @@ pattern VK_SHIFT = 0x10
 pattern VK_CONTROL :: VK
 pattern VK_CONTROL = 0x11
 
--- | i.e. @Alt@
+-- | @Alt@ key
 pattern VK_MENU :: VK
 pattern VK_MENU = 0x12
 -- |
@@ -175,7 +175,7 @@ pattern VK_SNAPSHOT = 0x2C
 -- |
 pattern VK_INSERT :: VK
 pattern VK_INSERT = 0x2D
--- |
+-- | forwards delete, @DELETE@ key
 pattern VK_DELETE :: VK
 pattern VK_DELETE = 0x2E
 -- |
@@ -460,7 +460,7 @@ pattern VK_OEM_FJ_TOUROKU = 0x94
 -- |
 pattern VK_OEM_FJ_LOYA :: VK
 pattern VK_OEM_FJ_LOYA = 0x95
--- @| Right OYAYUBI@ key
+-- | @Right OYAYUBI@ key
 -- |
 pattern VK_OEM_FJ_ROYA :: VK
 pattern VK_OEM_FJ_ROYA = 0x96
@@ -545,48 +545,37 @@ pattern VK_LAUNCH_APP2 :: VK
 pattern VK_LAUNCH_APP2 = 0xB7
 
 -- | @;:@ for the US
--- |
 pattern VK_OEM_1 :: VK
 pattern VK_OEM_1 = 0xBA
 -- | @+@ any country
--- |
 pattern VK_OEM_PLUS :: VK
 pattern VK_OEM_PLUS = 0xBB
 -- | @,@ | any country
--- |
 pattern VK_OEM_COMMA :: VK
 pattern VK_OEM_COMMA = 0xBC
 -- | @-@ | any country
--- |
 pattern VK_OEM_MINUS :: VK
 pattern VK_OEM_MINUS = 0xBD
 -- | @.@ | any country
--- |
 pattern VK_OEM_PERIOD :: VK
 pattern VK_OEM_PERIOD = 0xBE
 -- | @/?@ | for the US
--- |
 pattern VK_OEM_2 :: VK
 pattern VK_OEM_2 = 0xBF
 -- | @`~@ | for the US
--- |
 pattern VK_OEM_3 :: VK
 pattern VK_OEM_3 = 0xC0
 
 -- | @[{@ | for the US
--- |
 pattern VK_OEM_4 :: VK
 pattern VK_OEM_4 = 0xDB
--- |  @\|@ | for the US
--- |
+-- | @\|@ | for the US
 pattern VK_OEM_5 :: VK
 pattern VK_OEM_5 = 0xDC
--- |  @]}@ | for the US
--- |
+-- | @]}@ | for the US
 pattern VK_OEM_6 :: VK
 pattern VK_OEM_6 = 0xDD
 -- | @"@ for the US
--- |
 pattern VK_OEM_7 :: VK
 pattern VK_OEM_7 = 0xDE
 -- |

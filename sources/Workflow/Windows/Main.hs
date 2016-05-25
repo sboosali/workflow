@@ -67,8 +67,11 @@ main = do
  -- delayMilliseconds 1000
  -- scrollMouse ScrollAway 1000
 
- traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
+ -- traverse_ testWindow ["OpusApp", "Emacs", "ConsoleWindowClass", "Chrome_WidgetWin_1"]
   -- "OpusApp" no, "Emacs" no, "ConsoleWindowClass" no, "Chrome_WidgetWin_1"  yes -- (Window "" "Chrome_WidgetWin_1" "")
+
+ pressKeychord [] VK_OEM_PLUS
+ pressKeychord [VK_SHIFT] VK_OEM_PLUS
 
 {- when minimized, negs:
 
