@@ -18,7 +18,7 @@ import Foreign.C
 import Data.Char
 import Numeric.Natural
 import Control.Monad.IO.Class
-import Control.Exception (bracket)
+import Control.Exception (bracket,bracket_)
 
 
 {-
@@ -63,7 +63,25 @@ sendChar c = liftIO $ do
 
 --------------------------------------------------------------------------------
 
-pressKeychord :: (MonadIO m) => [VK] -> VK -> m ()
+--TODO workflow-types holdingModifiers
+
+{- perform an action while holding down some keys (e.g. modifiers).
+
+via 'bracket_', the keys are released even when an exception is raised.
+
+-}
+holdingKeys :: [VK] -> IO () -> IO ()
+holdingKeys keys = bracket_
+ (pressKeyDown `traverse_` keys)
+ (pressKeyUp   `traverse_` keys)
+
+-- holdingKeys :: (MonadIO m) => [VK] -> m () -> m ()
+-- holdingKeys keys action = liftIO $ bracket_
+--  (pressKeyDown `traverse_` keys)
+--  (pressKeyUp   `traverse_` keys)
+--  action
+
+pressKeychord :: (MonadIO m) => [VK] -> VK -> m () --TODO rn KeyChord
 pressKeychord modifiers key = do
   pressKeyDown `traverse_` modifiers
   pressKeyDown key

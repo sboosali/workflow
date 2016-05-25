@@ -57,8 +57,9 @@ runWorkflowT = iterT go
   SendText        s k              -> Win32.sendText s >> k
   -- TODO support Unicode by inserting "directly"
   -- terminates because sendTextAsKeypresses is exclusively a sequence of SendKeyChord'es
-
-  -- TODO SendMouseClick  flags n button k -> Win32.clickMouse flags n button >> k
+  -- TODO SendMouseClick  flags n button k ->
+  SendMouseClick    flags n button k -> clickMouse_Win32 flags n button >> k
+  SendMouseScroll   flags scroll n k -> scrollMouse_Win32 flags scroll n >> k
 
   GetClipboard    f                -> Win32.getClipboard >>= f
   SetClipboard    s k              -> Win32.setClipboard s >> k
@@ -72,6 +73,13 @@ runWorkflowT = iterT go
 
 -----------------------------------------------------------------------------------------
 
+clickMouse_Win32
+ :: (MonadIO m) => [Modifier] -> Natural -> MouseButton -> m ()
+clickMouse_Win32 modifiers n button = liftIO $ do
+  POINT x y <- getCursorPosition --TODO Point has Cursor case
+  holdingKeys (fromModifier <$> modifiers) $ do
+      clickMouseAt_Win32 button n (x,y)
+
 clickMouseAt_Win32
  :: (MonadIO m) => MouseButton -> Natural -> (LONG,LONG) -> m ()
 clickMouseAt_Win32 (encodeMouseButton -> (down, up)) n (x,y)
@@ -79,9 +87,10 @@ clickMouseAt_Win32 (encodeMouseButton -> (down, up)) n (x,y)
 --TODO type for screen coordinates. more than point. abs/rel. (bounded instance for rel).
 
 scrollMouse_Win32
- :: (MonadIO m) => MouseScroll -> Natural -> m ()
-scrollMouse_Win32 (encodeMouseScroll -> (wheel, direction))
- = Win32.scrollMouse wheel direction
+ :: (MonadIO m) => [Modifier] -> MouseScroll -> Natural -> m ()
+scrollMouse_Win32 modifiers (encodeMouseScroll -> (wheel, direction)) n
+ = liftIO $ holdingKeys (fromModifier <$> modifiers) $ do
+     Win32.scrollMouse wheel direction n
 
 {-|
 
