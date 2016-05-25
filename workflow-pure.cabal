@@ -41,6 +41,7 @@ library
  exposed-modules:
   Workflow.Pure
   Workflow.Pure.Types
+  Workflow.Pure.Execute
 
 -- other-modules:
   Workflow.Pure.Extra
@@ -62,7 +63,7 @@ library
   -- ,
   -- , lens
   -- , exceptions
-  -- , free
+  , free
   -- , bifunctors
   -- , profunctors
   -- , either
