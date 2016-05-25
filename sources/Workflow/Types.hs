@@ -15,9 +15,10 @@ import Control.Monad.Trans.Free (FreeT)
 import Control.Monad.Free.Church  (F)
 import           Control.Monad.Free          (MonadFree, Free, liftF)
 import           Control.Monad.Free.TH       (makeFree)
-
+import Numeric.Natural
 --import GHC.Exts
 
+--------------------------------------------------------------------------------
 
 {-|
 
@@ -45,35 +46,44 @@ as the exceptions can always be caught, or not displayed.
 
 -}
 data WorkflowF k
- = SendKeyChord    [Modifier] Key                   k -- ^ press the 'Key' while the 'Modifier's are held down. sent to the current application.
+ = SendKeyChord    [Modifier] Key                  k -- ^ press the 'Key' while the 'Modifier's are held down. sent to the current application.
  --TODO | SendKeyChordTo Application    [Modifier] Key                   k -- ^
+ --TODO | SendKeyChordTo Window    [Modifier] Key                   k -- ^
+ -- versus unary: ([Modifier], Key)
+ -- rn SendChord
 
- | SendText        String                           k -- ^ a logical grouping for: (1) unicode support (2) efficiency and (3) debugging. sent to the current application.
+ | SendText        String                          k -- ^ a logical grouping for: (1) unicode support (2) efficiency and (3) debugging. sent to the current application.
  --TODO | SendTextTo Application        String                           k -- ^
+ --TODO | SendTextTo Window        String                           k -- ^
  -- sendText = sendTextTo =<< currentApplication
 
+ | SendMouseClick  [Modifier] Natural MouseButton  k  -- ^ click the button, some number of times, holding down the modifiers
+  -- derived, make method, not constructor. sent to the current application.
+ --TODO | SendMouseClickTo Application  [Modifier] Int MouseButton  k  ^ -- sent to the current application.
+ -- versus unary: ([Modifier], Natural, MouseButton)
+ | SendMouseScroll  [Modifier] MouseScroll Natural  k  -- ^ spin the wheel, some number of units*, holding down the modifiers
+
  | GetClipboard                                     (Clipboard -> k)
- | SetClipboard    Clipboard                        k
+ | SetClipboard       Clipboard                     k
 
  | CurrentApplication                               (Application -> k) -- ^ like getter
  | OpenApplication    Application                   k                  -- ^ like setter
-
- --TODO | SendMouseClick  [Modifier] Int MouseButton  k  ^ -- derived, make method, not constructor. sent to the current application.
- --TODO | SendMouseClickTo Application  [Modifier] Int MouseButton  k  ^ -- sent to the current application.
+ --TODO | GetApplications ([Application] -> k)
 
  --TODO | CurrentWindow                               (Window -> k)
- --TODO | OpenWindow Window                      k
+ --TODO | ReachWindow Window                      k
  --TODO | GetWindows        Application                       ([Window] -> k)   -- ^ an 'Application' has some 'Window's (zero or more on OSX, one or more on Windows/Linux, I think).
 
  | OpenURL         URL                              k
 
  | Delay           MilliSeconds                             k -- interpreted as 'threadDelay' on all platforms; included for convenience
- -- TODO  | Annihilate      SomeException                       -- no k, it annihilates the action, for mzero and MonadThrow. violates monad laws?
- -- TODO   | PerformIO       (IO a)                           (a -> k)
+
  deriving (Functor)
  -- deriving (Functor,Data)
 
-{- |
+--------------------------------------------------------------------------------
+
+{- | abstract interface.
 
 a monad constraint for "workflow effects"
 (just like @MonadState@ is for "state effects").
@@ -381,4 +391,5 @@ data Key
 
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
 
+--------------------------------------------------------------------------------
 makeFree ''WorkflowF
