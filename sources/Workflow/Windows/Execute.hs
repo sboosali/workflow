@@ -62,12 +62,15 @@ runWorkflowT = iterT go
   Delay           t k              -> delayMilliseconds t >> k
  -- 1,000 µs is 1ms
 
------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 win32SendKeyChord :: (MonadIO m) => [Modifier] -> Key -> m ()
 win32SendKeyChord modifiers key
  = liftIO $ Win32.pressKeychord (fromModifier <$> modifiers) (fromKey key)
 
+{-|
+
+-}
 fromModifier :: Modifier -> VK
 fromModifier = \case
  MetaModifier     -> VK_MENU
@@ -77,6 +80,9 @@ fromModifier = \case
  ShiftModifier    -> VK_SHIFT
  FunctionModifier -> VK_FN
 
+{-|
+
+-}
 fromKey :: Key -> VK
 fromKey = \case
 
@@ -172,3 +178,5 @@ fromKey = \case
  F18Key -> VK_F18
  F19Key -> VK_F19
  F20Key -> VK_F20
+
+--------------------------------------------------------------------------------

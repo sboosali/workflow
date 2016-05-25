@@ -149,31 +149,31 @@ openUrl (URL s) = liftIO $ withCWString s c_OpenUrl
 {-|
 
 -}
-getCursorPosition :: IO POINT
-getCursorPosition = getByReference c_GetCursorPos
+getCursorPosition :: (MonadIO m) => m POINT
+getCursorPosition = liftIO $ getByReference c_GetCursorPos
 {-|
 
 (doesn't trigger @RSIGuard@'s @AutoClick@).
 
 -}
-setCursorPosition :: POINT -> IO ()
-setCursorPosition (POINT x y) = do
+setCursorPosition :: (MonadIO m) => POINT -> m ()
+setCursorPosition (POINT x y) = liftIO $ do
   c_SetCursorPos (CInt x) (CInt y)
 
 -------------------------------------------------------------------------
 
-findWindow :: Window -> IO HWND
-findWindow Window{..} = do
+findWindow :: (MonadIO m) => Window -> m HWND
+findWindow Window{..} = liftIO $ do
   withCWString windowClass $ \_windowClass -> do -- ContT IO?
     withCWString windowTitle $ \_windowTitle -> do
         HWND <$> c_FindWindow _windowClass _windowTitle --TODO _windowExecutable
 
 -- | TODO check against 'nullPtr'?
-getWindowRectangle :: HWND -> IO RECT
-getWindowRectangle (HWND w) = getByReference (c_GetWindowRect w)
+getWindowRectangle :: (MonadIO m) => HWND -> m RECT
+getWindowRectangle (HWND w) = liftIO $ getByReference (c_GetWindowRect w)
 
-getLastError :: IO SystemErrorCode
-getLastError = SystemErrorCode <$> c_GetLastError
+getLastError :: (MonadIO m) => m SystemErrorCode
+getLastError = liftIO $ SystemErrorCode <$> c_GetLastError
 
 -------------------------------------------------------------------------
 
@@ -185,6 +185,12 @@ getByReference setter = bracket
  malloc
  free
  (\p -> setter p >> peek p)
+
+ -- getByReference :: (Storable a, MonadIO m) => (Ptr a -> m ()) -> m a
+ -- getByReference setter = liftIO $ bracket -- can liftIO? result IO is positive-position, but action IO is negative-position.
+ --  malloc
+ --  free
+ --  (\p -> setter p >> liftIO (peek p))
 
 {-|
 
