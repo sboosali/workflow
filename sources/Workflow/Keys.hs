@@ -16,15 +16,15 @@ Just [([HyperModifier,ShiftModifier],[TKey]),([HyperModifier],[LKey])]
 -}
 readKeySequence :: String -> Maybe KeySequence --TODO Either ReadKeySequenceError / ErrorReadingKeySequence
 readKeySequence --TODO make extensible with Map Char Key and Map String Modifier and inner-div and outer-div
- = splitOn " " >>> fmap (splitOn "-") >>> traverse readKeyChord
+ = splitOn " " >>> fmap (splitOn "-") >>> traverse readKeyChords >>> fmap concat
 
-readKeyChord :: [String] -> Maybe KeyChord
-readKeyChord = \case
+readKeyChords :: [String] -> Maybe [KeyChord]
+readKeyChords = \case
  []      -> Nothing
- s@(_:_) -> (,) <$> ms <*> ks
-  where
-  ms = traverse readModifier (init s) --NOTE total, TODO prove with NonEmpty.init
-  ks = traverse readKey      (last s) --NOTE total
+ s@(_:_) -> do
+   ms <- traverse readModifier (init s) --NOTE total, TODO prove with NonEmpty.init
+   ks <- traverse readKey      (last s) --NOTE total --TODO munch uppercase until lwoer
+   return $ fmap (KeyChord ms) ks
 
 -- | surjective, non-injective.
 readModifier :: String -> Maybe Modifier

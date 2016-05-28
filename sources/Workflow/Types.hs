@@ -270,7 +270,7 @@ while individually press each key down and back up.
 Naming: https://www.emacswiki.org/emacs/Chord
 
 -}
-type KeyChord = ([Modifier], [Key]) --TODO ([Modifier], NonEmpty Key)
+type KeyChord = ([Modifier], Key)
 -- data KeyChord = KeyChord [Modifier] Key
 {- data KeyChord = KeyChord
  { kcModifiers :: [Modifier]
@@ -279,9 +279,11 @@ type KeyChord = ([Modifier], [Key]) --TODO ([Modifier], NonEmpty Key)
 -}
 
 -- | @pattern KeyChord ms k = (ms,k)@
+pattern KeyChord :: [Modifier] -> Key -> KeyChord
 pattern KeyChord ms k = (ms, k)
 
-pattern KeyChordNoModifiers k = ([], k)
+pattern SimpleKeyChord :: Key -> KeyChord
+pattern SimpleKeyChord k = ([], k)
 
 {- | modifier keys are keys that can be "held".
 
