@@ -10,12 +10,12 @@ import qualified Data.Map as Map
 
 {-|
 
->>> readKeyBinding "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
+>>> readKeySequence "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
 Just [([HyperModifier,ShiftModifier],[TKey]),([HyperModifier],[LKey])]
 
 -}
-readKeyBinding :: String -> Maybe KeyBinding --TODO Either ReadKeyBindingError / ErrorReadingKeyBinding
-readKeyBinding --TODO make extensible with Map Char Key and Map String Modifier and inner-div and outer-div
+readKeySequence :: String -> Maybe KeySequence --TODO Either ReadKeySequenceError / ErrorReadingKeySequence
+readKeySequence --TODO make extensible with Map Char Key and Map String Modifier and inner-div and outer-div
  = splitOn " " >>> fmap (splitOn "-") >>> traverse readKeyChord
 
 readKeyChord :: [String] -> Maybe KeyChord

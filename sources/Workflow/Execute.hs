@@ -9,13 +9,34 @@ import Control.Concurrent (threadDelay)
 import Numeric.Natural
 
 
-{-| an explicit type-class "dictionary" for interpreting a 'MonadWorkflow'.
+{-| An explicit type-class "dictionary" for interpreting a 'MonadWorkflow'.
+
+i.e. a generic handler/interpreter (product type)
+for 'WorkflowF' effects (a sum type).
 
 e.g.
 
 @
 WorkflowD IO
 @
+
+template:
+
+@
+myDictionary :: (MonadIO m) => WorkflowD m
+myDictionary = WorkflowD{..}
+ where
+ _getClipboard =
+ _setClipboard =
+
+runWorkflowByMy :: (MonadIO m) => WorkflowT m a -> m a
+runWorkflowByMy = runWorkflowByT myDictionary
+@
+
+'Delay' is elided, as its implementation can use
+cross-platform 'IO' ('threadDelay').
+
+see 'runWorkflowByT'
 
 -}
 data WorkflowD m = WorkflowD
@@ -33,8 +54,7 @@ data WorkflowD m = WorkflowD
 
  , _openURL            :: URL -> m ()
 
- , _delay              :: (MilliSeconds -> m ())
-
+ -- , _delay :: MilliSeconds -> m ()
  } -- deriving (Functor)
 
 --------------------------------------------------------------------------------

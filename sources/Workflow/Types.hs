@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds, FlexibleContexts, PatternSynonyms #-}
 {-# LANGUAGE TemplateHaskell #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -104,7 +104,9 @@ data Workflow_
  | OpenApplication_ Application
  | OpenURL_         URL
  | Delay_           MilliSeconds
- deriving (Show,Read,Eq,Ord,Data,Generic,NFData)
+
+ deriving (Show,Read,Eq,Ord,Data,Generic)
+instance NFData Workflow_
 
 --------------------------------------------------------------------------------
 
@@ -211,7 +213,8 @@ data MouseButton
  | MiddleButton
  | RightButton
  --TODO | XButton -- https://msdn.microsoft.com/en-us/library/windows/desktop/gg153549(v=vs.85).aspx
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic,NFData)
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+instance NFData MouseButton
 
 {-| Mouse wheel scrolling, vertically and horizontally.
 
@@ -226,7 +229,8 @@ data MouseScroll
   | ScrollAway -- ScrollDown (from user)
   | ScrollLeft
   | ScrollRight
-  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic,NFData)
+  deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+instance NFData MouseScroll
 
 --------------------------------------------------------------------------------
 
@@ -244,10 +248,8 @@ data MouseScroll
 Naming:
 <https://www.emacswiki.org/emacs/KeySequence>
 
-TODO rename KeySequence
-
 -}
-type KeyBinding = [KeyChord]
+type KeySequence = [KeyChord]
 -- newtype KeySequence = KeySequence (NonEmpty KeyChord)
 --
 --TODO newtype for non-overlapping IsString
@@ -276,11 +278,10 @@ type KeyChord = ([Modifier], [Key]) --TODO ([Modifier], NonEmpty Key)
  }
 -}
 
--- | appends a modifier
-addMod :: Modifier -> KeyChord -> KeyChord
-addMod m (ms, k) = (m:ms, k)
--- false positive nonexhaustive warning with the KeyChord pattern. fixed in ghc8?
--- addMod m (KeyChord ms k) = KeyChord (m:ms) k
+-- | @pattern KeyChord ms k = (ms,k)@
+pattern KeyChord ms k = (ms, k)
+
+pattern KeyChordNoModifiers k = ([], k)
 
 {- | modifier keys are keys that can be "held".
 
@@ -297,17 +298,18 @@ data Modifier
  | OptionModifier --TODO rn Option Alt
  | ShiftModifier
  | FunctionModifier
- deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic)
+instance NFData Modifier
 
-{- | a "cross-platform" keyboard:
+{- | a "cross-platform" keyboard, that has:
 
-* keys that exist on standard keyboards.
+* all keys that exist on standard keyboards.
 * plus, 'MetaKey' and 'HyperKey': virtual modifiers to abstract over
 common keyboard shortcuts.
 
 (let me know if you want a type to support cross-platform international keyboards,
 i haven't looked into it. you can still use the
-paltform-specific virtual-key-codes in the dependent packages:
+platform-specific virtual-key-codes in the dependent packages:
 @workflow-linux@, @workflow-osx@, and @workflow-windows@)
 
 -}
@@ -406,7 +408,8 @@ data Key
  | F19Key
  | F20Key
 
- deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData)
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic)
+instance NFData Key
 
 --------------------------------------------------------------------------------
 makeFree ''WorkflowF
@@ -437,14 +440,6 @@ provides generic helper functions for defining interpreters.
 -}
 
 {-|
-
-a generic handler/interpreter (product type)
-for 'WorkflowF' effects (a sum type).
-
-'Delay' is elided, as its implementation can use
-cross-platform 'IO' ('threadDelay').
-
-see 'runWorkflowWithT'
 
 Naming: induces a @CoMonad@, see
 <http://dlaing.org/cofun/posts/free_and_cofree.html>
