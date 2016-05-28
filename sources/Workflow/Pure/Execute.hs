@@ -41,7 +41,7 @@ isSimpleWorkflow m = (runIdentity . runMaybeT . execWriterT) (goM m)
 
  goM :: Workflow x -> SimpleWorkflowM ()
  goM = \case
-  Pure x -> return ()
+  Pure _ -> return ()
   Free a -> goF a
 
  goF :: WorkflowF (Workflow x) -> SimpleWorkflowM ()

@@ -8,6 +8,8 @@
 module Workflow.Pure
  ( module Workflow.Pure.Types
  , module Workflow.Pure.Execute
+ , module Workflow.Pure.Char
  ) where
 import Workflow.Pure.Types
 import Workflow.Pure.Execute
+import Workflow.Pure.Char

@@ -42,6 +42,7 @@ library
   Workflow.Pure
   Workflow.Pure.Types
   Workflow.Pure.Execute
+  Workflow.Pure.Char
 
 -- other-modules:
   Workflow.Pure.Extra
@@ -62,7 +63,7 @@ library
   , semigroups
   -- ,
   -- , lens
-  -- , exceptions
+  , exceptions
   , free
   -- , bifunctors
   -- , profunctors

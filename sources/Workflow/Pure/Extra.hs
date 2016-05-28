@@ -3,6 +3,7 @@ module Workflow.Pure.Extra
 
  , module Control.DeepSeq
  , module Data.Semigroup
+ , module Control.Monad.Catch
 
  , module GHC.Generics
  , module Data.Data
@@ -13,6 +14,7 @@ module Workflow.Pure.Extra
 
 import Control.DeepSeq (NFData)
 import Data.Semigroup (Semigroup)
+import           Control.Monad.Catch          (MonadThrow(..))
 
 import GHC.Generics (Generic)
 import Data.Data (Data)
@@ -24,11 +26,5 @@ import Data.Function ((&))
 nothing :: (Monad m) => m ()
 nothing = return ()
 
-maybe2bool :: Maybe a -> Bool
-maybe2bool = maybe False (const True)
-
-either2maybe :: Either e a -> Maybe a
-either2maybe = either (const Nothing) Just
-
-either2bool :: Either e a -> Bool
-either2bool = either (const False) (const True)
+failed :: (MonadThrow m) => String -> m a
+failed = throwM . userError
