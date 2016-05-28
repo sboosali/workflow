@@ -33,6 +33,7 @@ library
                      ExplicitForAll StandaloneDeriving
 
  exposed-modules:
+  Workflow.Core
   Workflow.Types
   Workflow.Execute
   Workflow.Derived
