@@ -19,21 +19,21 @@ WorkflowD IO
 
 -}
 data WorkflowD m = WorkflowD
- { _SendKeyChord       :: [Modifier] -> Key -> m ()
- , _SendText           :: String            -> m ()
+ { _sendKeyChord       :: [Modifier] -> Key -> m ()
+ , _sendText           :: String            -> m ()
 
- , _SendMouseClick     :: [Modifier] -> Natural     -> MouseButton -> m ()
- , _SendMouseScroll    :: [Modifier] -> MouseScroll -> Natural     -> m ()
+ , _sendMouseClick     :: [Modifier] -> Natural     -> MouseButton -> m ()
+ , _sendMouseScroll    :: [Modifier] -> MouseScroll -> Natural     -> m ()
 
- , _GetClipboard       :: m Clipboard
- , _SetClipboard       :: (Clipboard -> m ())
+ , _getClipboard       :: m Clipboard
+ , _setClipboard       :: (Clipboard -> m ())
 
- , _CurrentApplication :: m Application
- , _OpenApplication    :: Application -> m ()
+ , _currentApplication :: m Application
+ , _openApplication    :: Application -> m ()
 
- , _OpenURL            :: URL -> m ()
+ , _openURL            :: URL -> m ()
 
- , _Delay              :: (MilliSeconds -> m ())
+ , _delay              :: (MilliSeconds -> m ())
 
  } -- deriving (Functor)
 
@@ -47,43 +47,43 @@ e.g.
 shellDictionary :: WorkflowD IO
 shellDictionary = WorkflowD{..}
  where
- _GetClipboard = shell $ "pbpaste"
- _SetClipboard s = shell $ "echo "++(shellEscape s)++"| pbcopy" >> return ()
+ '_getClipboard' = shell $ "pbpaste"
+ '_setClipboard' s = shell $ "echo "++(shellEscape s)++"| pbcopy" >> return ()
  ...
 
 runWorkflowByShell :: (MonadIO m) => 'WorkflowT' m a -> m a
-runWorkflowByShell = runWorkflowWithT shellDictionary
+runWorkflowByShell = runWorkflowByT shellDictionary
 
 -- specializeable:
 -- runWorkflowByShell :: 'Workflow' a -> IO a
 @
 
 -}
-runWorkflowWithT
+runWorkflowByT
   :: forall m a. (MonadIO m)
   -- => CoWorkflowT (m a)
   => WorkflowD m
   -> WorkflowT m a
   -> m a
--- runWorkflowWithT CoWorkflowF{..} = iterT go
-runWorkflowWithT WorkflowD{..} = iterT go
+-- runWorkflowByT CoWorkflowF{..} = iterT go
+runWorkflowByT WorkflowD{..} = iterT go
  where
 
  go :: WorkflowF (m a) -> m a
  go = \case
 
-  SendKeyChord    flags key k      -> _SendKeyChord flags key >> k
-  SendText        s k              -> _SendText s             >> k
+  SendKeyChord    flags key k      -> _sendKeyChord flags key >> k
+  SendText        s k              -> _sendText s             >> k
 
-  SendMouseClick  flags n button k    -> _SendMouseClick flags n button     >> k
-  SendMouseScroll flags scrolling n k -> _SendMouseScroll flags scrolling n >> k
+  SendMouseClick  flags n button k    -> _sendMouseClick flags n button     >> k
+  SendMouseScroll flags scrolling n k -> _sendMouseScroll flags scrolling n >> k
 
-  GetClipboard    f                -> _GetClipboard   >>= f
-  SetClipboard    s k              -> _SetClipboard s >>  k
+  GetClipboard    f                -> _getClipboard   >>= f
+  SetClipboard    s k              -> _setClipboard s >>  k
 
-  CurrentApplication f             -> _CurrentApplication  >>= f
-  OpenApplication app k            -> _OpenApplication app >>  k
-  OpenURL         url k            -> _OpenURL url         >>  k
+  CurrentApplication f             -> _currentApplication  >>= f
+  OpenApplication app k            -> _openApplication app >>  k
+  OpenURL         url k            -> _openURL url         >>  k
 
   Delay           t k              -> delayMilliseconds t >> k
  -- 1,000 µs is 1ms

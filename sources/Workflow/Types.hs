@@ -468,21 +468,21 @@ background: see
 
 -}
 data CoWorkflowF k = CoWorkflowF
-   { _sendKeyChord       :: ([Modifier] -> Key -> k)
-   , _sendText           :: (String            -> k)
+   { _SendKeyChord       :: ([Modifier] -> Key -> k)
+   , _SendText           :: (String            -> k)
 
-   , _sendMouseClick     :: ([Modifier] -> Natural     -> MouseButton -> k)
-   , _sendMouseScroll    :: ([Modifier] -> MouseScroll -> Natural     -> k)
+   , _SendMouseClick     :: ([Modifier] -> Natural     -> MouseButton -> k)
+   , _SendMouseScroll    :: ([Modifier] -> MouseScroll -> Natural     -> k)
 
-   , _getClipboard       :: (Clipboard  , k)
-   , _setClipboard       :: (Clipboard -> k)
+   , _GetClipboard       :: (Clipboard  , k)
+   , _SetClipboard       :: (Clipboard -> k)
 
-   , _currentApplication :: (Application  , k)
-   , _openApplication    :: (Application -> k)
+   , _CurrentApplication :: (Application  , k)
+   , _OpenApplication    :: (Application -> k)
 
-   , _openURL            :: (URL -> k)
+   , _OpenURL            :: (URL -> k)
 
-   , _delay              :: (MilliSeconds -> k)
+   , _Delay              :: (MilliSeconds -> k)
 
    } deriving (Functor)
 
