@@ -35,7 +35,7 @@ source-repository head
 library
  hs-source-dirs:      sources
  default-language:    Haskell2010
- ghc-options:       
+ ghc-options:
   -Wall
   -fwarn-incomplete-uni-patterns
   -fwarn-incomplete-record-updates
@@ -43,52 +43,54 @@ library
   -fno-warn-unticked-promoted-constructors
  default-extensions: AutoDeriveTypeable DeriveDataTypeable DeriveGeneric
                      DeriveFunctor DeriveFoldable DeriveTraversable
-                     LambdaCase EmptyCase TypeOperators PostfixOperators 
+                     LambdaCase EmptyCase TypeOperators PostfixOperators
                      ViewPatterns BangPatterns KindSignatures
                      NamedFieldPuns RecordWildCards TupleSections
-                     MultiWayIf DoAndIfThenElse EmptyDataDecls 
-                     MultiParamTypeClasses FlexibleContexts FlexibleInstances 
+                     MultiWayIf DoAndIfThenElse EmptyDataDecls
+                     MultiParamTypeClasses FlexibleContexts FlexibleInstances
                      TypeFamilies FunctionalDependencies
-                     ScopedTypeVariables StandaloneDeriving 
+                     ScopedTypeVariables StandaloneDeriving
 
  exposed-modules:
-  Workflow
-  Workflow.Types
+  Workflow.Derived
 
 -- other-modules:
-  Workflow.Extra
-  Workflow.Main
+  Workflow.Derived.Extra
+  Workflow.Derived.Main
 
  build-depends:
     base >=4.7 && <5
 
+  , workflow-types
+
   -- ,
-  -- , transformers
+  , transformers
   -- , mtl
   -- , containers
-  -- , bytestring
+  , bytestring
   -- , stm
   -- , template-haskell
 
-  , deepseq 
-  , hashable
-  , semigroups
   -- ,
+  , http-types
+  -- , deepseq
+  -- , hashable
+  -- , semigroups
   -- , lens
   -- , exceptions
-  -- , free
-  -- , bifunctors 
-  -- , profunctors 
+  , free
+  -- , bifunctors
+  -- , profunctors
   -- , either
-  -- , pipes  
-  -- , formatting 
+  -- , pipes
+  -- , formatting
   -- , servant
   -- , Earley
   -- , split
-  -- , interpolatedstring-perl6 
+  -- , interpolatedstring-perl6
   -- , wl-pprint-text
   -- , text
-  -- , aeson 
+  -- , aeson
   -- , hashable
   -- , unordered-containers
   -- , async
@@ -120,7 +122,7 @@ test-suite doctest
  build-depends:
     base
   , workflow-extra
-  , doctest 
+  , doctest
 
 
 -- $ stack test unittest
@@ -154,8 +156,7 @@ benchmark command
  ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
 
  build-depends:
-    base 
+    base
   , workflow-extra
   , criterion
-  , deepseq 
-
+  , deepseq
