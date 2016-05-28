@@ -48,8 +48,9 @@ library
 
   , deepseq
   , semigroups
-  , free
   , split
+  , free
+  , comonad
 
 executable workflow-types-example
    main-is:             Main.hs

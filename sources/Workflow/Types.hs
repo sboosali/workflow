@@ -1,8 +1,8 @@
-{-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts, ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-{-# OPTIONS_GHC -ddump-splices #-}
+-- {-# OPTIONS_GHC -ddump-splices #-}
 -- for `makeFree`
 
 {-|
@@ -12,13 +12,19 @@ module Workflow.Types where
 import Workflow.Extra
 
 import Control.Monad.Trans.Free (FreeT)
+import Control.Comonad.Trans.Cofree (CofreeT)
 -- import Control.Monad.Free.Church  (F)
 import           Control.Monad.Free          (MonadFree, Free, liftF)
 import           Control.Monad.Free.TH       (makeFree)
+import           Control.Comonad.Cofree (Cofree)
+-- import Control.Comonad
+
 import Numeric.Natural
 --import GHC.Exts
 
 --------------------------------------------------------------------------------
+{-$ WorkflowF
+-}
 
 {-|
 
@@ -404,18 +410,178 @@ data Key
 
 --------------------------------------------------------------------------------
 makeFree ''WorkflowF
-
-fromWorkflow_ :: (MonadWorkflow m) => [Workflow_] -> m ()
-fromWorkflow_ = traverse_ go
- where
- go = \case
-  SendKeyChord_    flags key      -> liftF $ SendKeyChord     flags key      ()
-  SendText_        s              -> liftF $ SendText         s              ()
-  SendMouseClick_  flags n button -> liftF $ SendMouseClick   flags n button ()
-  SendMouseScroll_ flags scroll n -> liftF $ SendMouseScroll  flags scroll n ()
-  SetClipboard_    s              -> liftF $ SetClipboard     s              ()
-  OpenApplication_ app            -> liftF $ OpenApplication  app            ()
-  OpenURL_         url            -> liftF $ OpenURL          url            ()
-  Delay_           t              -> liftF $ Delay            t              ()
+-- th staging: the spilce can only access previous declarations
 
 --------------------------------------------------------------------------------
+
+fromWorkflows_ :: (MonadWorkflow m) => [Workflow_] -> m ()
+fromWorkflows_ = traverse_ (liftF . fromWorkflow_)
+
+fromWorkflow_ :: Workflow_ -> WorkflowF ()
+-- fromWorkflow_ :: (MonadWorkflow m) => Workflow_ -> m ()
+fromWorkflow_ = \case
+  SendKeyChord_    flags key      -> SendKeyChord     flags key      ()
+  SendText_        s              -> SendText         s              ()
+  SendMouseClick_  flags n button -> SendMouseClick   flags n button ()
+  SendMouseScroll_ flags scroll n -> SendMouseScroll  flags scroll n ()
+  SetClipboard_    s              -> SetClipboard     s              ()
+  OpenApplication_ app            -> OpenApplication  app            ()
+  OpenURL_         url            -> OpenURL          url            ()
+  Delay_           t              -> Delay            t              ()
+
+--------------------------------------------------------------------------------
+{-$ CoWorkflowF
+
+provides generic helper functions for defining interpreters.
+
+-}
+
+{-|
+
+a generic handler/interpreter (product type)
+for 'WorkflowF' effects (a sum type).
+
+'Delay' is elided, as its implementation can use
+cross-platform 'IO' ('threadDelay').
+
+see 'runWorkflowWithT'
+
+Naming: induces a @CoMonad@, see
+<http://dlaing.org/cofun/posts/free_and_cofree.html>
+
+'WorkflowF', 'CoWorkflowF', and 'runWorkflowWithT' are analogous to:
+
+* @Either (a -> c) (b,c)@,
+"get an @a@, or set a @b@"
+* @((a,c), (b -> c))@,
+"a handler for the getting of an @a@, and a handler for the setting of a @b@"
+* @
+handle
+ :: ((a,c), (b -> c))
+ -> (Either (a -> c) (b,c))
+ -> c
+handle (aHasBeenGotten, bHasBeenSet) = either TODO
+@
+
+background: see
+<http://dlaing.org/cofun/posts/free_and_cofree.html>
+
+-}
+data CoWorkflowF k = CoWorkflowF
+   { _sendKeyChord       :: ([Modifier] -> Key -> k)
+   , _sendText           :: (String            -> k)
+
+   , _sendMouseClick     :: ([Modifier] -> Natural     -> MouseButton -> k)
+   , _sendMouseScroll    :: ([Modifier] -> MouseScroll -> Natural     -> k)
+
+   , _getClipboard       :: (Clipboard  , k)
+   , _setClipboard       :: (Clipboard -> k)
+
+   , _currentApplication :: (Application  , k)
+   , _openApplication    :: (Application -> k)
+
+   , _openURL            :: (URL -> k)
+
+   , _delay              :: (MilliSeconds -> k)
+
+   } deriving (Functor)
+
+{-
+
+class (Functor f, Functor g) => Pairing f g where
+ pair :: (a -> b -> r) -> (f a -> g b -> r)
+
+instance Pairing CoWorkflowF WorkflowF where
+ pair :: (a -> b -> r) -> (CoWorkflowF a -> WorkflowF b -> r)
+
+ pair u CoWorkflowF{..} = \case
+
+  GetClipboard f    -> let (s,a) = _getClipboard in
+                       u a (f s)
+
+  SetClipboard s b  -> u (_setClipboard s) b
+
+  ...
+
+-}
+
+{-| an explicit type-class "dictionary" for 'MonadWorkflow'.
+
+e.g.
+
+@
+@
+
+expansion:
+
+@
+CoWorkflowT w a
+~
+CofreeT CoWorkflowF w a
+~
+w (CofreeF CoWorkflowF a (CofreeT CoWorkflowF w a))
+~
+w (a, CoWorkflowF (CofreeT CoWorkflowF w a))
+@
+
+since:
+
+@
+data CofreeT f w a = w (CofreeF f a (CofreeT f w a))
+@
+
+-}
+type CoWorkflowT = CofreeT CoWorkflowF
+
+{-|
+
+expansion:
+
+@
+CoWorkflow a
+~
+Cofree CoWorkflowF a
+~
+(a, CoWorkflow (Cofree CoWorkflowF a))
+@
+
+since:
+
+@
+data Cofree f a = a :< f (Cofree f a)
+@
+
+-}
+type CoWorkflow = Cofree CoWorkflowF
+
+-- [old] naming: WorkflowD
+
+-- {-|
+--
+-- -}
+-- runWorkflowWithT
+--   :: forall m a. (MonadIO m)
+--   => CoWorkflowT (m a)
+--   -> WorkflowT    m a
+--   -> m a
+-- runWorkflowWithT CoWorkflowF{..} = iterT go
+--  where
+--
+--  go :: WorkflowF (m a) -> m a
+--  go = \case
+--
+--   SendKeyChord    flags key k      -> _sendKeyChord flags key >> k
+--   SendText        s k              -> _sendText s             >> k
+--
+--   SendMouseClick  flags n button k    -> _sendMouseClick flags n button     >> k
+--   SendMouseClick  flags scrolling n k -> _sendMouseScroll flags scrolling n >> k
+--
+--   GetClipboard    f                -> _getClipboard   >>= f
+--   SetClipboard    s k              -> _setClipboard s >>  k
+--
+--   CurrentApplication f             -> _currentApplication  >>= f
+--   OpenApplication app k            -> _openApplication app >>  k
+--   OpenURL         url k            -> _openURL url         >>  k
+--
+--   Delay           t k              -> liftIO (threadDelay (t*1000)) >> k
+--  -- 1,000 µs is 1ms
