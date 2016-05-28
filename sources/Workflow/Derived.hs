@@ -1,4 +1,5 @@
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 {-|
 
 -}
@@ -7,10 +8,7 @@ import Workflow.Types
 
 import Control.Monad.Trans.Free (intersperseT)
 -- import Control.Monad.Free
-import Control.Concurrent (threadDelay)
-import Control.Monad.IO.Class
 import Numeric.Natural
-import Data.Function ((&))
 
 --------------------------------------------------------------------------------
 chord = sendKeyChord
@@ -26,10 +24,6 @@ wait :: (MonadWorkflow m, Integral a) => a -> m ()
 wait = delay . fromIntegral
 
 --------------------------------------------------------------------------------
-
-delayMilliseconds :: (MonadIO m) => Int -> m ()
-delayMilliseconds = liftIO . threadDelay . (*1000)
---TODO put in a .Execute as a utility
 
 {-| intersperse a delay between each action.
 

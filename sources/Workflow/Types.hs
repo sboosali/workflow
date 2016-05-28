@@ -1,4 +1,4 @@
-{-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE DeriveAnyClass, PatternSynonyms, ConstraintKinds, FlexibleContexts #-}
 {-# LANGUAGE TemplateHaskell #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
@@ -503,9 +503,16 @@ instance Pairing CoWorkflowF WorkflowF where
 
   ...
 
+
+  pairEffect :: (Pairing f g, Comonad w, Monad m)
+             => (a -> b -> r) -> CofreeT f w a -> FreeT g m b -> m r
+  pairEffect p s c = do
+
+
+
 -}
 
-{-| an explicit type-class "dictionary" for 'MonadWorkflow'.
+{-|
 
 e.g.
 
@@ -554,34 +561,4 @@ data Cofree f a = a :< f (Cofree f a)
 -}
 type CoWorkflow = Cofree CoWorkflowF
 
--- [old] naming: WorkflowD
-
--- {-|
---
--- -}
--- runWorkflowWithT
---   :: forall m a. (MonadIO m)
---   => CoWorkflowT (m a)
---   -> WorkflowT    m a
---   -> m a
--- runWorkflowWithT CoWorkflowF{..} = iterT go
---  where
---
---  go :: WorkflowF (m a) -> m a
---  go = \case
---
---   SendKeyChord    flags key k      -> _sendKeyChord flags key >> k
---   SendText        s k              -> _sendText s             >> k
---
---   SendMouseClick  flags n button k    -> _sendMouseClick flags n button     >> k
---   SendMouseClick  flags scrolling n k -> _sendMouseScroll flags scrolling n >> k
---
---   GetClipboard    f                -> _getClipboard   >>= f
---   SetClipboard    s k              -> _setClipboard s >>  k
---
---   CurrentApplication f             -> _currentApplication  >>= f
---   OpenApplication app k            -> _openApplication app >>  k
---   OpenURL         url k            -> _openURL url         >>  k
---
---   Delay           t k              -> liftIO (threadDelay (t*1000)) >> k
---  -- 1,000 µs is 1ms
+--------------------------------------------------------------------------------
