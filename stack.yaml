@@ -4,4 +4,5 @@ packages:
 - .
 - ../workflow-types
 
-extra-deps: []
+extra-deps:
+- c-storable-deriving-0.1.3

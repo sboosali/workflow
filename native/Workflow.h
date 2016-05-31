@@ -15,3 +15,5 @@ UINT ClickMouseAt(int x, int y, int n, DWORD buttonDown, DWORD buttonUp);
 
 HINSTANCE OpenApplication(LPCTSTR);
 HINSTANCE OpenUrl(LPCTSTR);
+
+BOOL EnableDebugPriv();

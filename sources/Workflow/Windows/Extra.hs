@@ -5,8 +5,8 @@ module Workflow.Windows.Extra
  , module GHC.Generics
  , module Data.Function
  , module Data.Foldable
+ , module Export_
  ) where
-import Workflow.Windows.Types
 
 import Control.Arrow ((>>>))
 import Control.Concurrent (threadDelay)
@@ -14,15 +14,15 @@ import Data.Data (Data)
 import GHC.Generics (Generic)
 import Data.Function ((&),on)
 import Data.Foldable (traverse_)
+import Control.Monad.IO.Class
+import Control.Monad as Export_
+import Foreign (Ptr,nullPtr)
 
 nothing :: IO ()
 nothing = return ()
 
-toDWORD :: (Integral a) => a -> DWORD
-toDWORD = fromIntegral
-
-delay :: Int -> IO ()
-delay = threadDelay . (*1000)
+delayMilliseconds :: (MonadIO m) => Int -> m ()
+delayMilliseconds = liftIO . threadDelay . (*1000)
 
 {-|
 
@@ -31,3 +31,9 @@ delay = threadDelay . (*1000)
 -}
 toInt :: (Integral a) => a -> Int
 toInt = toInteger >>> (id :: Integer -> Integer) >>> fromIntegral
+
+todo :: a --TODO call stack
+todo = error "TODO"
+
+isNull :: Ptr a -> Bool
+isNull = (== nullPtr)

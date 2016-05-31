@@ -35,8 +35,11 @@ library
  exposed-modules:
   Workflow.Windows
   Workflow.Windows.Types
-  Workflow.Windows.Bindings
+  Workflow.Windows.Constants
   Workflow.Windows.Foreign
+  Workflow.Windows.Bindings
+  Workflow.Windows.Execute
+  Workflow.Windows.Variables
 
 -- other-modules:
   Workflow.Windows.Main
@@ -44,11 +47,18 @@ library
 
  build-depends:
     base >=4.7 && <5
-  , lens
+  , transformers
 
+  -- TODO other package?
+  , workflow-types
+  , free
 
--- $ stack build && stack exec workflow-windows
-executable workflow-windows
+  -- minimal dependencies
+  , c-storable-deriving
+  , StateVar
+
+-- $ stack build && stack exec workflow-windows-example
+executable workflow-windows-example
  hs-source-dirs:      executables
  main-is:             Main.hs
  default-language:    Haskell2010

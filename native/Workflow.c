@@ -168,3 +168,25 @@ HINSTANCE OpenApplication(LPCTSTR app) {
 HINSTANCE OpenUrl(LPCTSTR url) {
 	return ShellExecute(NULL, L"open", url, NULL, NULL, SW_SHOWNORMAL);
 }
+
+
+BOOL EnableDebugPriv()
+{
+	HANDLE hToken;
+	LUID luid;
+	TOKEN_PRIVILEGES tkp;
+
+	OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken);
+
+	LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &luid);
+
+	tkp.PrivilegeCount = 1;
+	tkp.Privileges[0].Luid = luid;
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	BOOL wasAdjsuted = AdjustTokenPrivileges(hToken, 0, &tkp, sizeof(tkp), NULL, NULL); // ""'false' undeclared"
+
+	CloseHandle(hToken);
+
+	return wasAdjsuted;
+}
