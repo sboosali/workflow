@@ -244,8 +244,8 @@ emacsKeySyntax = Map.fromList
   , "|"  -: KeyChord [ShiftModifier] BackslashKey
   , ";"  -: KeyChord [             ] SemicolonKey
   , ":"  -: KeyChord [ShiftModifier] SemicolonKey
-  , "'" -: KeyChord [             ] QuoteKey
-  , "\""  -: KeyChord [ShiftModifier] QuoteKey
+  , "'"  -: KeyChord [             ] QuoteKey
+  , "\"" -: KeyChord [ShiftModifier] QuoteKey
   , ","  -: KeyChord [             ] CommaKey
   , "<"  -: KeyChord [ShiftModifier] CommaKey
   , "."  -: KeyChord [             ] PeriodKey

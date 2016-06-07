@@ -9,6 +9,7 @@ import Workflow.Types
 import Control.Monad.Trans.Free (intersperseT)
 -- import Control.Monad.Free
 import Numeric.Natural
+import Data.List (intersperse)
 
 --------------------------------------------------------------------------------
 chord = sendKeyChord
@@ -22,6 +23,16 @@ scroll = sendMouseScroll
 
 wait :: (MonadWorkflow m, Integral a) => a -> m ()
 wait = delay . fromIntegral
+
+--TODO mv to extra
+sendTextEach :: (MonadWorkflow m) => Int -> String -> m ()
+-- sendText :: (MonadIO m) => (Monad m  m) => String -> m ()
+sendTextEach t s
+ = sequence_
+ . intersperse (delay t)
+ . fmap sendText
+ . fmap (:[])
+ $ s
 
 --------------------------------------------------------------------------------
 

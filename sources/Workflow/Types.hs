@@ -413,6 +413,16 @@ data Key
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic)
 instance NFData Key
 
+-- | All modifiers are keys.
+modifier2key :: Modifier -> Key
+modifier2key = \case
+ MetaModifier          -> MetaKey
+ HyperModifier         -> HyperKey
+ ShiftModifier         -> ShiftKey
+ OptionModifier        -> OptionKey
+ ControlModifier       -> ControlKey
+ FunctionModifier      -> FunctionKey
+
 --------------------------------------------------------------------------------
 makeFree ''WorkflowF
 -- th staging: the spilce can only access previous declarations
