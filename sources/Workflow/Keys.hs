@@ -1,69 +1,149 @@
-{-| see 'press'.
-
--}
+{-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module Workflow.Keys where
 import Workflow.Types
 import Workflow.Extra
 
 import Data.List.Split
 
-import qualified Data.Map as Map
-import           Data.Map (Map)
+import qualified Data.Map.Strict as Map
+import           Data.Map.Strict (Map)
 
 --------------------------------------------------------------------------------
 
 {-| Parses and executes a keyboard shortcut. (via 'readKeySequence' and 'sendKeyChord').
 
-* more convenient
-but (safely) partial.
+* more convenient than manually constructing 'Modifier's and 'Key's.
+* but, (safely) partial
 
-The default syntax is inspired by Emacs.
+e.g. compare:
+
+@
+press "H-S-t H-l"
+@
+
+to:
+
+@
+'traverse_' 'sendKeyChord''
+ [ 'KeyChord' ['HyperModifier', 'ShiftModifier'] 'TKey'
+ , 'KeyChord' ['HyperModifier') 'LKey'
+ ]
+@
+
+(a keyboard shortcut to "re-open tab, then jump to url bar")
 
 'throwM's on a "syntax error"
 
+The default syntax is inspired by Emacs:
+
+@
+press = 'press'' 'defaultKeyChordSyntax'
+@
+
 -}
 press :: (MonadWorkflow m, MonadThrow m) => String -> m ()
-press s = go s
-
-  where
-  go = (readKeySequence >>> __cast__) >=> traverse_ sendKeyChord'
-  __cast__ = maybe
-    (failed $ "syntax error: {{Workflow.Keys.press "++(show s)++"}}")
-    -- TODO? Control.Monad.Fail (MonadFail(..))
-    (return)
+press = press' defaultKeyChordSyntax
 
 {-|
 
->>> readKeySequence "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
-Just [([HyperModifier,ShiftModifier],[TKey]),([HyperModifier],[LKey])]
+>>> readEmacsKeySequence "H-S-t H-l"
+Just [([HyperModifier,ShiftModifier],TKey),([HyperModifier],LKey)]
 
 -}
-readKeySequence :: String -> Maybe KeySequence --TODO Either ReadKeySequenceError / ErrorReadingKeySequence
-readKeySequence --TODO make extensible with Map Char Key and Map String Modifier and inner-div and outer-div
- = splitOn " " >>> fmap (splitOn "-") >>> traverse readKeyChord
- -- >>> fmap concat
-
-readKeyChord :: [String] -> Maybe KeyChord
-readKeyChord = \case
- []      -> Nothing
- s@(_:_) -> do
-   ms <- traverse readModifier (init s) --NOTE total, TODO prove with NonEmpty.init
-   k  <-          readKey      (last s) --NOTE total --TODO munch uppercase until lwoer
-   return $ addMods ms k
-
--- | surjective, non-injective.
-readModifier :: String -> Maybe Modifier
-readModifier = (flip Map.lookup) defaultModifierSyntax
-
--- |
-readKey :: String -> Maybe KeyChord --TODO string for non-alphanums like <spc>
-readKey = (flip Map.lookup) defaultKeyChordSyntax
+readEmacsKeySequence :: String -> Maybe KeySequence
+readEmacsKeySequence = readKeySequence defaultKeyChordSyntax
 
 --------------------------------------------------------------------------------
 
+{-| Build your own 'press'. e.g.
+
+@
+import "Workflow.Core" hiding (press)
+
+press = press' KeyChordSyntax{..}
+
+modifierSyntax :: ModifierSyntax
+modifierSyntax = defaultModifierSyntax -- defaulting
+
+keySyntax :: KeySyntax     -- overriding
+keySyntax = Map.fromList
+ [ ...
+ ]
+
+@
+-}
+press' :: (MonadWorkflow m, MonadThrow m) => KeyChordSyntax -> String -> m ()
+press' syntax s = go s
+
+  where
+  go = (readKeySequence syntax >>> __cast__) >=> traverse_ sendKeyChord'
+  __cast__ = \case
+    Nothing -> __fail__
+    Just [] -> __fail__ --TODO? readKeySequence :: MonadThrow m => String -> m KeySequence
+    Just ks -> return ks --TODO NonEmpty
+
+  __fail__ = failed $ "syntax error: {{Workflow.Keys.press "++(show s)++"}}"
+    -- TODO? Control.Monad.Fail (MonadFail(..))
+
+readKeySequence :: KeyChordSyntax -> String -> Maybe KeySequence --TODO Either ReadKeySequenceError / ErrorReadingKeySequence
+readKeySequence syntax --TODO plural? --TODO make extensible with Map Char Key and Map String Modifier and inner-div and outer-div
+ = splitOn " " >>> fmap (splitOn "-") >>> traverse (readKeyChord syntax)
+ -- >>> fmap concat
+
+readKeyChord :: KeyChordSyntax -> [String] -> Maybe KeyChord
+readKeyChord KeyChordSyntax{..} = \case
+ []      -> Nothing
+ s@(_:_) -> do
+   ms <- traverse (readModifier modifierSyntax) (init s) --NOTE total, TODO prove with NonEmpty.init
+   k  <-          (readKey      keySyntax)      (last s) --NOTE total --TODO munch uppercase until lwoer
+   return $ addMods ms k
+
+-- | surjective, non-injective.
+readModifier :: ModifierSyntax -> String -> Maybe Modifier
+readModifier = (flip Map.lookup)
+
+-- |
+readKey :: KeySyntax -> String -> Maybe KeyChord --TODO string for non-alphanums like <spc>
+readKey = (flip Map.lookup)
+
+--------------------------------------------------------------------------------
+
+{-| A table for parsing strings of modifiers and keys.
+
+-}
+data KeyChordSyntax = KeyChordSyntax
+ { modifierSyntax :: ModifierSyntax
+ , keySyntax      :: KeySyntax
+ }  deriving (Show,Read,Eq,Ord,Data,Generic)
+instance NFData KeyChordSyntax
+
+-- | '<>' overrides (i.e. right-biased i.e. pick the last).
+instance Monoid KeyChordSyntax where
+  mempty = KeyChordSyntax mempty mempty
+  mappend (KeyChordSyntax m1 k1) (KeyChordSyntax m2 k2) = KeyChordSyntax{..}
+   where
+   modifierSyntax = Map.unionWith (curry snd) m1 m2
+   keySyntax      = Map.unionWith (curry snd) k1 k2
+
+type ModifierSyntax = Map String Modifier
+
+type KeySyntax = Map String KeyChord
+
+-- | @= 'KeyChordSyntax' 'defaultModifierSyntax' 'defaultKeySyntax'@
+defaultKeyChordSyntax :: KeyChordSyntax
+defaultKeyChordSyntax = KeyChordSyntax defaultModifierSyntax defaultKeySyntax
+
+-- | @= 'emacsModifierSyntax'@
+defaultModifierSyntax :: ModifierSyntax
+defaultModifierSyntax = emacsModifierSyntax
+
+-- | @= 'emacsKeySyntax'@
+defaultKeySyntax :: KeySyntax
+defaultKeySyntax = emacsKeySyntax
+
 -- | (see source)
-defaultModifierSyntax :: Map String Modifier
-defaultModifierSyntax = Map.fromList
+emacsModifierSyntax :: ModifierSyntax
+emacsModifierSyntax = Map.fromList
   [ "M" -: MetaModifier
   , "H" -: HyperModifier --TODO C
   , "C" -: ControlModifier --TODO N / R / L
@@ -74,8 +154,8 @@ defaultModifierSyntax = Map.fromList
   ]
 
 -- | (see source)
-defaultKeyChordSyntax :: Map String KeyChord --TODO newtype, def, IsList --TODO modules, neither explicit nor implicit param
-defaultKeyChordSyntax = Map.fromList
+emacsKeySyntax :: KeySyntax --TODO newtype, def, IsList --TODO modules, neither explicit nor implicit param
+emacsKeySyntax = Map.fromList
   [ "a"  -: KeyChord [             ] AKey
   , "A"  -: KeyChord [ShiftModifier] AKey
   , "b"  -: KeyChord [             ] BKey
@@ -222,6 +302,12 @@ addMod m (ms, k) = (m:ms, k)
 -- addMod m (KeyChord ms k) = KeyChord (m:ms) k
 
 --------------------------------------------------------------------------------
+
+{-TODO
+
+Is The benefit of avoiding a parser library as a dependency worth the awkwardness?
+
+-}
 
 {- the keypress that would insert the character into the application.
 

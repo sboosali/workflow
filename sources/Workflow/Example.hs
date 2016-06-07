@@ -8,5 +8,5 @@ stack build && stack exec -- workflow-types-example
 -}
 
 main = do
-  print $ readKeySequence "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
+  print $ readEmacsKeySequence "H-S-t H-l"  -- "re-open tab", then "jump to url bar"
 
