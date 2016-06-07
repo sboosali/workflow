@@ -49,10 +49,12 @@ library
   , containers
 
   , deepseq
+  , hashable
   , semigroups
   , split
   , free
   , comonad
+  , exceptions
 
 executable workflow-types-example
    main-is:             Main.hs

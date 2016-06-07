@@ -417,6 +417,10 @@ instance NFData Key
 makeFree ''WorkflowF
 -- th staging: the spilce can only access previous declarations
 
+-- | uncurried 'sendKeyChord'
+sendKeyChord' :: (MonadWorkflow m) => KeyChord -> m ()
+sendKeyChord' (ms,k) = sendKeyChord ms k
+
 --------------------------------------------------------------------------------
 
 fromWorkflows_ :: (MonadWorkflow m) => [Workflow_] -> m ()

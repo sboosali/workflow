@@ -26,8 +26,18 @@ template:
 myDictionary :: (MonadIO m) => WorkflowD m
 myDictionary = WorkflowD{..}
  where
- _getClipboard =
- _setClipboard =
+  _sendKeyChord =
+  _sendText     =
+
+  _sendMouseClick  =
+  _sendMouseScroll =
+
+  _getClipboard =
+  _setClipboard =
+
+  _currentApplication =
+  _openApplication    =
+  _openURL            =
 
 runWorkflowByMy :: (MonadIO m) => WorkflowT m a -> m a
 runWorkflowByMy = runWorkflowByT myDictionary
@@ -110,3 +120,6 @@ runWorkflowByT WorkflowD{..} = iterT go
 
 delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)
+
+delaySeconds :: (MonadIO m) => Int -> m ()
+delaySeconds =  delayMilliseconds . (*1000)

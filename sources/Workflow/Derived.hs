@@ -25,12 +25,6 @@ wait = delay . fromIntegral
 
 --------------------------------------------------------------------------------
 
--- | appends a modifier
-addMod :: Modifier -> KeyChord -> KeyChord
-addMod m (ms, k) = (m:ms, k)
--- false positive nonexhaustive warning with the KeyChord pattern. fixed in ghc8?
--- addMod m (KeyChord ms k) = KeyChord (m:ms) k
-
 {-| intersperse a delay between each action.
 
 @
