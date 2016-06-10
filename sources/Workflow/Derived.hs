@@ -104,10 +104,6 @@ google (BS.pack -> query) = openURL (BS.unpack url)
 
 --------------------------------------------------------------------------------
 
-delayMilliseconds :: (MonadIO m) => Int -> m ()
-delayMilliseconds = liftIO . threadDelay . (*1000)
---TODO put in a .Execute as a utility
-
 {-| intersperse a delay between each action.
 
 @
@@ -131,3 +127,14 @@ do
 -}
 delayWorkflowT :: (Monad m) => Int -> WorkflowT m a -> WorkflowT m a
 delayWorkflowT t = intersperseT (Delay t ())
+
+sendTextEach :: (MonadWorkflow m) => Int -> String -> m ()
+-- sendText :: (MonadIO m) => (Monad m  m) => String -> m ()
+sendTextEach t s
+ = sequence_
+ . intersperse (delay t)
+ . fmap sendText
+ . fmap (:[])
+ $ s
+
+--------------------------------------------------------------------------------

@@ -15,6 +15,8 @@ import Control.Arrow as X ((>>>))
 import Data.Monoid as X ((<>))
 
 import Data.Function as X ((&))
+import Data.Foldable as X (traverse_)
+import Data.List as X (intersperse)
 
 
 nothing :: (Monad m) => m ()
