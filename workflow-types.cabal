@@ -36,8 +36,8 @@ library
   Workflow.Core
   Workflow.Types
   Workflow.Execute
-  Workflow.Derived
   Workflow.Keys
+  Workflow.Reexports
 
  -- other-modules:
   Workflow.Extra

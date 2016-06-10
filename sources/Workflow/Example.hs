@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 module Workflow.Example where
---import Workflow.Types
-import Workflow.Keys
+import Workflow.Core
 
 {-
 stack build && stack exec -- workflow-types-example

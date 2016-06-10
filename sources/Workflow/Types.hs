@@ -120,7 +120,25 @@ e.g.
 
 
 -}
-type MonadWorkflow = MonadFree WorkflowF
+type MonadWorkflow m = (MonadFree WorkflowF m, MonadThrow m)
+
+-- | (without failability)
+type MonadWorkflow_ = MonadFree WorkflowF
+
+{-old
+type MonadWorkflow_ m = (MonadFree WorkflowF m)
+
+without eta-contract:
+        Illegal deriving item ‘MonadWorkflow_’
+-}
+
+--NOTE MonadThrow for `press`.
+-- but, does instance MonadThrow (FreeT f m) exist? depends on f?
+-- yes! depends on m. instance (Functor f, MonadThrow m) => MonadThrow (FreeT f m)
+
+-- class (MonadFree WorkflowF m, MonadThrow m) => MonadWorkflow where
+-- like `newtype` for constraints
+-- less automatic
 
 -- {- | for convenience.
 -- without loss of generality (I don't think) when declaring simple monadic effects (like Kleisli arrows).

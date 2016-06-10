@@ -323,3 +323,107 @@ Nothing
 prop> case char2keypress c of {  Just ([],_) -> True;  Just ([ShiftModifier],_) -> True;  Nothing -> True;  _ -> False  }
 
 -}
+char2keypress :: (MonadThrow m) => Char -> m KeyChord
+char2keypress c = case c of
+
+ 'a'  -> return $ KeyChord [             ] AKey
+ 'A'  -> return $ KeyChord [ShiftModifier] AKey
+ 'b'  -> return $ KeyChord [             ] BKey
+ 'B'  -> return $ KeyChord [ShiftModifier] BKey
+ 'c'  -> return $ KeyChord [             ] CKey
+ 'C'  -> return $ KeyChord [ShiftModifier] CKey
+ 'd'  -> return $ KeyChord [             ] DKey
+ 'D'  -> return $ KeyChord [ShiftModifier] DKey
+ 'e'  -> return $ KeyChord [             ] EKey
+ 'E'  -> return $ KeyChord [ShiftModifier] EKey
+ 'f'  -> return $ KeyChord [             ] FKey
+ 'F'  -> return $ KeyChord [ShiftModifier] FKey
+ 'g'  -> return $ KeyChord [             ] GKey
+ 'G'  -> return $ KeyChord [ShiftModifier] GKey
+ 'h'  -> return $ KeyChord [             ] HKey
+ 'H'  -> return $ KeyChord [ShiftModifier] HKey
+ 'i'  -> return $ KeyChord [             ] IKey
+ 'I'  -> return $ KeyChord [ShiftModifier] IKey
+ 'j'  -> return $ KeyChord [             ] JKey
+ 'J'  -> return $ KeyChord [ShiftModifier] JKey
+ 'k'  -> return $ KeyChord [             ] KKey
+ 'K'  -> return $ KeyChord [ShiftModifier] KKey
+ 'l'  -> return $ KeyChord [             ] LKey
+ 'L'  -> return $ KeyChord [ShiftModifier] LKey
+ 'm'  -> return $ KeyChord [             ] MKey
+ 'M'  -> return $ KeyChord [ShiftModifier] MKey
+ 'n'  -> return $ KeyChord [             ] NKey
+ 'N'  -> return $ KeyChord [ShiftModifier] NKey
+ 'o'  -> return $ KeyChord [             ] OKey
+ 'O'  -> return $ KeyChord [ShiftModifier] OKey
+ 'p'  -> return $ KeyChord [             ] PKey
+ 'P'  -> return $ KeyChord [ShiftModifier] PKey
+ 'q'  -> return $ KeyChord [             ] QKey
+ 'Q'  -> return $ KeyChord [ShiftModifier] QKey
+ 'r'  -> return $ KeyChord [             ] RKey
+ 'R'  -> return $ KeyChord [ShiftModifier] RKey
+ 's'  -> return $ KeyChord [             ] SKey
+ 'S'  -> return $ KeyChord [ShiftModifier] SKey
+ 't'  -> return $ KeyChord [             ] TKey
+ 'T'  -> return $ KeyChord [ShiftModifier] TKey
+ 'u'  -> return $ KeyChord [             ] UKey
+ 'U'  -> return $ KeyChord [ShiftModifier] UKey
+ 'v'  -> return $ KeyChord [             ] VKey
+ 'V'  -> return $ KeyChord [ShiftModifier] VKey
+ 'w'  -> return $ KeyChord [             ] WKey
+ 'W'  -> return $ KeyChord [ShiftModifier] WKey
+ 'x'  -> return $ KeyChord [             ] XKey
+ 'X'  -> return $ KeyChord [ShiftModifier] XKey
+ 'y'  -> return $ KeyChord [             ] YKey
+ 'Y'  -> return $ KeyChord [ShiftModifier] YKey
+ 'z'  -> return $ KeyChord [             ] ZKey
+ 'Z'  -> return $ KeyChord [ShiftModifier] ZKey
+
+ '0'  -> return $ KeyChord [             ] ZeroKey
+ ')'  -> return $ KeyChord [ShiftModifier] ZeroKey
+ '1'  -> return $ KeyChord [             ] OneKey
+ '!'  -> return $ KeyChord [ShiftModifier] OneKey
+ '2'  -> return $ KeyChord [             ] TwoKey
+ '@'  -> return $ KeyChord [ShiftModifier] TwoKey
+ '3'  -> return $ KeyChord [             ] ThreeKey
+ '#'  -> return $ KeyChord [ShiftModifier] ThreeKey
+ '4'  -> return $ KeyChord [             ] FourKey
+ '$'  -> return $ KeyChord [ShiftModifier] FourKey
+ '5'  -> return $ KeyChord [             ] FiveKey
+ '%'  -> return $ KeyChord [ShiftModifier] FiveKey
+ '6'  -> return $ KeyChord [             ] SixKey
+ '^'  -> return $ KeyChord [ShiftModifier] SixKey
+ '7'  -> return $ KeyChord [             ] SevenKey
+ '&'  -> return $ KeyChord [ShiftModifier] SevenKey
+ '8'  -> return $ KeyChord [             ] EightKey
+ '*'  -> return $ KeyChord [ShiftModifier] EightKey
+ '9'  -> return $ KeyChord [             ] NineKey
+ '('  -> return $ KeyChord [ShiftModifier] NineKey
+
+ '`'  -> return $ KeyChord [             ] GraveKey
+ '~'  -> return $ KeyChord [ShiftModifier] GraveKey
+ '-'  -> return $ KeyChord [             ] MinusKey
+ '_'  -> return $ KeyChord [ShiftModifier] MinusKey
+ '='  -> return $ KeyChord [             ] EqualKey
+ '+'  -> return $ KeyChord [ShiftModifier] EqualKey
+ '['  -> return $ KeyChord [             ] LeftBracketKey
+ '{'  -> return $ KeyChord [ShiftModifier] LeftBracketKey
+ ']'  -> return $ KeyChord [             ] RightBracketKey
+ '}'  -> return $ KeyChord [ShiftModifier] RightBracketKey
+ '\\' -> return $ KeyChord [             ] BackslashKey
+ '|'  -> return $ KeyChord [ShiftModifier] BackslashKey
+ ';'  -> return $ KeyChord [             ] SemicolonKey
+ ':'  -> return $ KeyChord [ShiftModifier] SemicolonKey
+ '\'' -> return $ KeyChord [             ] QuoteKey
+ '"'  -> return $ KeyChord [ShiftModifier] QuoteKey
+ ','  -> return $ KeyChord [             ] CommaKey
+ '<'  -> return $ KeyChord [ShiftModifier] CommaKey
+ '.'  -> return $ KeyChord [             ] PeriodKey
+ '>'  -> return $ KeyChord [ShiftModifier] PeriodKey
+ '/'  -> return $ KeyChord [             ] SlashKey
+ '?'  -> return $ KeyChord [ShiftModifier] SlashKey
+ ' '  -> return $ KeyChord [             ] SpaceKey
+ '\t' -> return $ KeyChord [             ] TabKey
+ '\n' -> return $ KeyChord [             ] ReturnKey
+
+ _    -> failed $ "{{ char2keypress "++(show c)++" }} Is not an ASCII, printable character"
