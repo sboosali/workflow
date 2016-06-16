@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
-module Workflow.Keys where
+module Workflow.Keys where --TODO mv to workflow-derived
 import Workflow.Types
 import Workflow.Extra
 
@@ -49,9 +49,44 @@ press = press' defaultKeyChordSyntax
 >>> readEmacsKeySequence "H-S-t H-l"
 Just [([HyperModifier,ShiftModifier],TKey),([HyperModifier],LKey)]
 
+@='readEmacsKeySequence' 'emacsKeyChordSyntax'@
+
 -}
 readEmacsKeySequence :: String -> Maybe KeySequence
-readEmacsKeySequence = readKeySequence defaultKeyChordSyntax
+readEmacsKeySequence = readKeySequence emacsKeyChordSyntax
+
+{-|
+
+>>> readEmacsKeyChord "H-S-t"
+Just ([HyperModifier,ShiftModifier],TKey)
+
+@='readEmacsKeyChord' 'emacsKeyChordSyntax'@
+
+-}
+readEmacsKeyChord :: String -> Maybe KeySequence
+readEmacsKeyChord = readKeySequence emacsKeyChordSyntax
+
+{- |
+
+>>> readEmacsModifier "H"
+Just HyperModifier
+
+@='readModifier' 'emacsModifierSyntax'@
+
+-}
+readEmacsModifier :: String -> Maybe Modifier
+readEmacsModifier = readModifier emacsModifierSyntax
+
+{- |
+
+>>> readEmacsKey "<tab>"
+Just TabKey
+
+@='readKey' 'emacsKeySyntax'@
+
+-}
+readEmacsKey :: String -> Maybe KeyChord
+readEmacsKey = readKey emacsKeySyntax
 
 --------------------------------------------------------------------------------
 
@@ -129,7 +164,7 @@ type ModifierSyntax = Map String Modifier
 
 type KeySyntax = Map String KeyChord
 
--- | @= 'KeyChordSyntax' 'defaultModifierSyntax' 'defaultKeySyntax'@
+-- | @= 'emacsKeyChordSyntax'@
 defaultKeyChordSyntax :: KeyChordSyntax
 defaultKeyChordSyntax = KeyChordSyntax defaultModifierSyntax defaultKeySyntax
 
@@ -140,6 +175,10 @@ defaultModifierSyntax = emacsModifierSyntax
 -- | @= 'emacsKeySyntax'@
 defaultKeySyntax :: KeySyntax
 defaultKeySyntax = emacsKeySyntax
+
+-- | @= 'KeyChordSyntax' 'defaultModifierSyntax' 'defaultKeySyntax'@
+emacsKeyChordSyntax :: KeyChordSyntax
+emacsKeyChordSyntax = KeyChordSyntax defaultModifierSyntax defaultKeySyntax
 
 -- | (see source)
 emacsModifierSyntax :: ModifierSyntax
@@ -153,7 +192,23 @@ emacsModifierSyntax = Map.fromList
   , "F" -: FunctionModifier
   ]
 
--- | (see source)
+{- |
+
+follows <http://emacswiki.org/emacs/EmacsKeyNotation Emacs keybinding syntax>, with some differences:
+
+* non-modifier uppercase alphabetic characters are not shifted, for consistency:
+
+      * e.g. use @"M-S-a"@, not @"M-A"@
+      * e.g. but @"M-:"@ and @"M-S-;"@ can both be used
+
+* non-alphanumeric characters can be in angle brackets:
+
+      * e.g. use @"C-<tab>"@, not @"C-TAB"@
+      * e.g. but @"C-\t"@ can be used
+
+(see source)
+
+-}
 emacsKeySyntax :: KeySyntax --TODO newtype, def, IsList --TODO modules, neither explicit nor implicit param
 emacsKeySyntax = Map.fromList
   [ "a"  -: KeyChord [             ] AKey

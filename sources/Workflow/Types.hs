@@ -445,6 +445,10 @@ modifier2key = \case
 makeFree ''WorkflowF
 -- th staging: the spilce can only access previous declarations
 
+-- | @= 'traverse_' 'sendKeyChord\''@
+sendKeySequence :: (MonadWorkflow m) => KeySequence -> m ()
+sendKeySequence = traverse_ sendKeyChord'
+
 -- | uncurried 'sendKeyChord'
 sendKeyChord' :: (MonadWorkflow m) => KeyChord -> m ()
 sendKeyChord' (ms,k) = sendKeyChord ms k
