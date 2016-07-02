@@ -116,8 +116,12 @@ a monad constraint for "workflow effects"
 (just like @MonadState@ is for "state effects").
 Can be used in any monad transformer stack that handles them.
 
-e.g.
+'WorkflowF' holds the effects.
 
+'MonadThrow' supports:
+
+* 'Workflow.Keys.press', if the user's syntax is wrong
+* error messages from the underlying system calls (TODO e.g. Win32's @GetLastError()@)
 
 -}
 type MonadWorkflow m = (MonadFree WorkflowF m, MonadThrow m)

@@ -23,3 +23,4 @@ infix 1 -:
 
 failed :: (MonadThrow m) => String -> m a
 failed = ErrorCall >>> throwM
+

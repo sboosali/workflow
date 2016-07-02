@@ -287,7 +287,8 @@ emacsKeySyntax = Map.fromList
 
   , "`"  -: KeyChord [             ] GraveKey
   , "~"  -: KeyChord [ShiftModifier] GraveKey
-  , "-"  -: KeyChord [             ] MinusKey
+  , "<dash>"  -: KeyChord [             ] MinusKey 
+  , "-"  -: KeyChord [             ] MinusKey --TODO fails
   , "_"  -: KeyChord [ShiftModifier] MinusKey
   , "="  -: KeyChord [             ] EqualKey
   , "+"  -: KeyChord [ShiftModifier] EqualKey
@@ -364,22 +365,22 @@ Is The benefit of avoiding a parser library as a dependency worth the awkwardnes
 
 -}
 
-{- the keypress that would insert the character into the application.
+{- the keychord that would insert the character into the application.
 
->>> char2keypress '@' :: Maybe KeyChord
+>>> char2keychord '@' :: Maybe KeyChord
 Just ([ShiftModifier], TwoKey)
 
 some characters cannot be represented as keypresses, like some non-printable characters
 (in arbitrary applications, not just the terminal emulator):
 
->>> char2keypress '\0' :: Maybe KeyChord
+>>> char2keychord '\0' :: Maybe KeyChord
 Nothing
 
-prop> case char2keypress c of {  Just ([],_) -> True;  Just ([ShiftModifier],_) -> True;  Nothing -> True;  _ -> False  }
+prop> case char2keychord c of {  Just ([],_) -> True;  Just ([ShiftModifier],_) -> True;  Nothing -> True;  _ -> False  }
 
 -}
-char2keypress :: (MonadThrow m) => Char -> m KeyChord
-char2keypress c = case c of
+char2keychord :: (MonadThrow m) => Char -> m KeyChord
+char2keychord c = case c of
 
  'a'  -> return $ KeyChord [             ] AKey
  'A'  -> return $ KeyChord [ShiftModifier] AKey
@@ -481,4 +482,5 @@ char2keypress c = case c of
  '\t' -> return $ KeyChord [             ] TabKey
  '\n' -> return $ KeyChord [             ] ReturnKey
 
- _    -> failed $ "{{ char2keypress "++(show c)++" }} Is not an ASCII, printable character"
+ _    -> failed $ "{{ char2keychord "++(show c)++" }} not an ASCII, printable character"
+

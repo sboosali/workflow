@@ -9,7 +9,7 @@ import Control.Concurrent (threadDelay)
 import Numeric.Natural
 
 
-{-| An explicit type-class "dictionary" for interpreting a 'MonadWorkflow'.
+{-| An explicit "typeclass dictionary" for interpreting a 'MonadWorkflow'.
 
 i.e. a generic handler/interpreter (product type)
 for 'WorkflowF' effects (a sum type).
