@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts, ScopedTypeVariables, RecordWildCards #-}
+{-# LANGUAGE RankNTypes #-}
 module Workflow.Execute where
 import Workflow.Types
 
