@@ -114,17 +114,25 @@ showWorkflow m = "do\n" <> (evalState&flip) 1 (showWorkflow_ m)
 
  showWorkflowF :: (Show x) => WorkflowF (Workflow x) -> GensymM String
  showWorkflowF = \case
-  SendKeyChord    flags key k -> ((" sendKeyChord "    <> showArgs [show flags, show key]) <>)       <$> showWorkflow_ k
+  SendKeyChord    flags key k ->
+    ((" sendKeyChord "    <> showArgs [show flags, show key]) <>)       <$> showWorkflow_ k
   -- TODO SendMouseClick  flags n b k -> ((" sendMouseClick "  <> showArgs [show flags, show n, show b]) <>) <$> showWorkflow_ k
-  SendText        s k         -> ((" sendText "        <> showArgs [show s]) <>)                     <$> showWorkflow_ k
+  SendText        s k         ->
+    ((" sendText "        <> showArgs [show s]) <>)                     <$> showWorkflow_ k
 
-  SendMouseClick    flags n button k -> ((" sendMouseClick "     <> showArgs [show flags, show n, show button]) <>)       <$> showWorkflow_ k
-  SendMouseScroll   flags scroll n k -> ((" sendMouseScroll "    <> showArgs [show flags, show scroll, show n]) <>)       <$> showWorkflow_ k
+  SendMouseClick    flags n button k ->
+    ((" sendMouseClick "     <> showArgs [show flags, show n, show button]) <>)       <$> showWorkflow_ k
+  SendMouseScroll   flags scroll n k ->
+    ((" sendMouseScroll "    <> showArgs [show flags, show scroll, show n]) <>)       <$> showWorkflow_ k
 
-  SetClipboard    s k         -> ((" setClipboard "    <> showArgs [show s]) <>)                     <$> showWorkflow_ k
-  OpenApplication app k       -> ((" openApplication " <> showArgs [show app]) <>)                   <$> showWorkflow_ k
-  OpenURL         url k       -> ((" openURL "         <> showArgs [show url]) <>)                   <$> showWorkflow_ k
-  Delay           t k         -> ((" delay "           <> showArgs [show t]) <>)                     <$> showWorkflow_ k
+  SetClipboard    s k         ->
+    ((" setClipboard "    <> showArgs [show s]) <>)                     <$> showWorkflow_ k
+  OpenApplication app k       ->
+    ((" openApplication " <> showArgs [show app]) <>)                   <$> showWorkflow_ k
+  OpenURL         url k       ->
+    ((" openURL "         <> showArgs [show url]) <>)                   <$> showWorkflow_ k
+  Delay           t k         ->
+    ((" delay "           <> showArgs [show t]) <>)                     <$> showWorkflow_ k
 
  -- TODO distinguish between strings and variables to avoid:
  -- x2 <- getClipboard
