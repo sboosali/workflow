@@ -76,7 +76,7 @@ runAction runWorkflow = \case
  Pause t w -> Just $ runWorkflow $ do
    delay (t*1000)
    w
-   
+
  Action w -> Just $ runWorkflow $ do
    press "H-<tab>"
    delay 300
