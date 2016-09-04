@@ -77,7 +77,7 @@ library
   -- , hashable
   -- , semigroups
   -- , lens
-  -- , exceptions
+  , exceptions
   , free
   -- , bifunctors
   -- , profunctors

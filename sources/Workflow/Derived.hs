@@ -8,6 +8,7 @@ import Workflow.Types
 
 import Control.Monad.Trans.Free (intersperseT)
 -- import Control.Monad.Free
+import Control.Monad.Catch (MonadThrow)
 import qualified Data.ByteString.Char8       as BS
 import           Network.HTTP.Types.URI      (renderQuery)
 
@@ -136,5 +137,30 @@ sendTextEach t s
  . fmap sendText
  . fmap (:[])
  $ s
+
+--------------------------------------------------------------------------------
+
+{- the keychord that would insert the number (integral/decimal) into the application.
+
+>>> digit2keychord 0 :: Maybe KeyChord
+Just ([], ZeroKey)
+
+>>> digit2keychord 10 :: Maybe KeyChord
+Nothing
+
+-}
+digit2keychord :: (MonadThrow m, Num i, Eq i, Show i) => i -> m KeyChord
+digit2keychord d = case d of
+ 0 -> return $ SimpleKeyChord ZeroKey
+ 1 -> return $ SimpleKeyChord OneKey
+ 2 -> return $ SimpleKeyChord TwoKey
+ 3 -> return $ SimpleKeyChord ThreeKey
+ 4 -> return $ SimpleKeyChord FourKey
+ 5 -> return $ SimpleKeyChord FiveKey
+ 6 -> return $ SimpleKeyChord SixKey
+ 7 -> return $ SimpleKeyChord SevenKey
+ 8 -> return $ SimpleKeyChord EightKey
+ 9 -> return $ SimpleKeyChord NineKey
+ _ -> failed $ "{{ digit2keychord "++(show d)++" }} not a single-digit decimal number"
 
 --------------------------------------------------------------------------------

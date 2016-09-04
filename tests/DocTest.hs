@@ -2,6 +2,7 @@
 import Test.DocTest
 
 main = doctest
- [ "sources/Workflow.hs"
+ [
+   -- "sources/Workflow/Derived.hs"
  ]
 

@@ -18,6 +18,11 @@ import Data.Function as X ((&))
 import Data.Foldable as X (traverse_)
 import Data.List as X (intersperse)
 
+import Control.Monad.Catch (MonadThrow(..))
+import Control.Exception (ErrorCall(..))
+
+failed :: (MonadThrow m) => String -> m a
+failed = ErrorCall >>> throwM
 
 nothing :: (Monad m) => m ()
 nothing = return ()
@@ -30,3 +35,4 @@ either2maybe = either (const Nothing) Just
 
 either2bool :: Either e a -> Bool
 either2bool = either (const False) (const True)
+
