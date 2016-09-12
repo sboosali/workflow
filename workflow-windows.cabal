@@ -1,7 +1,8 @@
 name:                workflow-windows
 version:             0.0.0
-synopsis:            TODO
-description:         TODO
+synopsis:            Automate keyboard/mouse/clipboard/application interaction.
+description:         see http://github.com/sboosali/workflow-windows#readme for
+                     documentation and examples.
 homepage:            http://github.com/sboosali/workflow-windows#readme
 license:             BSD3
 license-file:        LICENSE
@@ -42,7 +43,7 @@ library
   Workflow.Windows.Variables
 
 -- other-modules:
-  Workflow.Windows.Main
+  Workflow.Windows.Example
   Workflow.Windows.Extra
 
  build-depends:
@@ -65,7 +66,7 @@ executable workflow-windows-example
  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
  build-depends:
-    base
+    base >=4.7 && <5
   , workflow-windows
 
 
@@ -78,7 +79,7 @@ test-suite doctest
  ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
 
  build-depends:
-  base
+    base >=4.7 && <5
   , workflow-windows
   , doctest ==0.10.*
 
@@ -94,7 +95,7 @@ test-suite unittest
   Workflow.Test
 
  build-depends:
-  base
+    base >=4.7 && <5
   , workflow-windows
   , hspec ==2.2.*
   , QuickCheck ==2.8.*

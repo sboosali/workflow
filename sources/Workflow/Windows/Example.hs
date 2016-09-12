@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, NegativeLiterals #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
-module Workflow.Windows.Main where
+module Workflow.Windows.Example where
 import Workflow.Windows
 import Workflow.Windows.Extra
 

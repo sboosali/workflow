@@ -44,13 +44,15 @@ setClipboard s = liftIO $ withCWString s c_SetClipboard
 
 char-by-char (one per event), no delay (between events).
 
+@
+sendText = 'traverse_' 'sendChar'
+@
+
 -}
 sendText :: (MonadIO m) => String -> m ()
-sendText = traverse_ sendChar -- TODO delay?
+sendText = traverse_ sendChar
 
-{-|
-
-milliseconds
+{-| like 'sendText', interspersing a delay (in milliseconds)
 
 -}
 sendTextDelaying :: (MonadIO m) => Int -> String -> m ()
