@@ -9,6 +9,9 @@ import Control.Monad.IO.Class
 import Control.Concurrent (threadDelay)
 import Numeric.Natural
 
+{-| a function that can exectue any workflow, via IO.
+-}
+type ExecuteWorkflow = (forall n x. (MonadIO n) => WorkflowT n x -> n x)
 
 {-| An explicit "typeclass dictionary" for interpreting a 'MonadWorkflow'.
 

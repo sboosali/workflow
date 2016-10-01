@@ -1,6 +1,6 @@
 name:                workflow-types
 version:             0.0.0
-synopsis:            TODO
+synopsis:            Automate keyboard\/mouse\/clipboard\/application interaction.
 description:         TODO
 homepage:            http://github.com/sboosali/workflow-types#readme
 license:             BSD3

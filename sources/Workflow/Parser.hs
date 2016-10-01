@@ -19,10 +19,6 @@ import System.IO
 import Control.Monad.IO.Class
 
 
-{-|
-
--}
-type ExecuteWorkflow = forall x. WorkflowT IO x -> IO x
   -- forall x. Workflow x -> IO x
   -- No instance for (MonadThrow (Control.Monad.Free.Free WorkflowF)) arising from a use of ‘press’
 
@@ -42,6 +38,17 @@ data Action
 prefix with a number to pause (for that many seconds) before execution.
 
 prefix with "stay" to disable "alt-tab"ing before execution.
+
+e.g.
+
+@
+> help
+...
+> stay paste
+> copy                   # (Having selected some text topmost (besides the current) window)
+> 1000 paste             # Wait a second before pasting
+> quit
+@
 
 -}
 cmdln :: ExecuteWorkflow -> IO ()
@@ -83,7 +90,7 @@ runAction runWorkflow = \case
    w
 
 help = do
-  putStrLn "help"
+  putStrLn "help" --TODO
 
 parseAction :: String -> Action
 parseAction s = case fst (p (words s)) of
@@ -133,4 +140,3 @@ gAction = do
   <|> Action <$> pWorkflow
 
  return pAction
-

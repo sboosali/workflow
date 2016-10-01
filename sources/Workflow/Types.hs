@@ -35,7 +35,7 @@ which can be interpreted by platform-specific bindings.
 
 Naming: "WorkflowF" for "Workflow Functor".
 
-currently, no error codes are returned (only @()@)).
+NOTE: currently, no error codes are returned (only @()@)).
 this (1) simplifies bindings and
 (2) saves the user from explicitly ignoring action results (e.g. @_ <- getClipboard@).
 later, they can be supported,
@@ -49,7 +49,6 @@ convenient partial functions that throw a helpful error message to stdout
 and either way, is strictly better for the user than ignoring,
 as the exceptions can always be caught, or not displayed.
 
-
 -}
 data WorkflowF k
  = SendKeyChord    [Modifier] Key                  k -- ^ press the 'Key' while the 'Modifier's are held down. sent to the current application.
@@ -59,12 +58,15 @@ data WorkflowF k
  -- rn SendChord
 
  | SendText        String                          k -- ^ a logical grouping for: (1) unicode support (2) efficiency and (3) debugging. sent to the current application.
+
  --TODO | SendTextTo Application        String                           k -- ^
  --TODO | SendTextTo Window        String                           k -- ^
  -- sendText = sendTextTo =<< currentApplication
 
  | SendMouseClick  [Modifier] Natural MouseButton  k  -- ^ click the button, some number of times, holding down the modifiers
   -- derived, make method, not constructor. sent to the current application.
+
+
  --TODO | SendMouseClickTo Application  [Modifier] Int MouseButton  k  ^ -- sent to the current application.
  -- versus unary: ([Modifier], Natural, MouseButton)
  | SendMouseScroll  [Modifier] MouseScroll Natural  k  -- ^ spin the wheel, some number of units*, holding down the modifiers
@@ -74,6 +76,7 @@ data WorkflowF k
 
  | CurrentApplication                               (Application -> k) -- ^ like getter
  | OpenApplication    Application                   k                  -- ^ like setter
+
  --TODO | GetApplications ([Application] -> k)
 
  --TODO | CurrentWindow                               (Window -> k)
@@ -82,7 +85,7 @@ data WorkflowF k
 
  | OpenURL         URL                              k
 
- | Delay           MilliSeconds                             k -- interpreted as 'threadDelay' on all platforms; included for convenience
+ | Delay           MilliSeconds                             k -- ^ interpreted as 'threadDelay' on all platforms; included for convenience
 
  deriving (Functor)
  -- deriving (Functor,Data)
@@ -185,13 +188,13 @@ type MilliSeconds = Int
 -- which isn't better than an explicit insert
 
 
-{-|
-
->>> :set -XOverloadedStrings
->>> "contents" :: Clipboard
-"contents"
-
--}
+-- {-|
+--
+-- >>> :set -XOverloadedStrings
+-- >>> "contents" :: Clipboard
+-- "contents"
+--
+-- -}
 --newtype Clipboard_ = Clipboard String
  --deriving (Show,Read,Eq,Ord,IsString,Data,Generic,Semigroup,NFData)
 -- data Clipboard = Clipboard { cbContents :: String, cbFormat :: ClipboardFormat }
@@ -202,23 +205,23 @@ type MilliSeconds = Int
 --  maybe: phantom data RawClipboard (format :: ClipboardFormat) = Bytestring
 --  with reflection class KnownClipboardFormat
 
-{-|
-
->>> :set -XOverloadedStrings
->>> "Emacs" :: Application
-"Emacs"
-
--}
+-- {-|
+--
+-- >>> :set -XOverloadedStrings
+-- >>> "Emacs" :: Application
+-- "Emacs"
+--
+-- -}
 --newtype Application_ = Application String
  --deriving (Show,Read,Eq,Ord,IsString,Data,Generic,Semigroup,NFData)
 
-{-|
-
->>> :set -XOverloadedStrings
->>> "https://google.com/" :: URL
-"https://google.com/"
-
--}
+-- {-|
+--
+-- >>> :set -XOverloadedStrings
+-- >>> "https://google.com/" :: URL
+-- "https://google.com/"
+--
+-- -}
 --newtype URL_ = URL String
   --deriving (Show,Read,Eq,Ord,IsString,Data,Generic,Semigroup,NFData)
 --TODO refined
@@ -243,7 +246,9 @@ instance NFData MouseButton
 'ScrollTowards':
 
 * scrolls up when "natural scrolling" is disabled
-* scrolls down when "natural scrolling" is enabled TODO check
+* scrolls down when "natural scrolling" is enabled
+
+TODO check
 
 -}
 data MouseScroll
@@ -309,15 +314,15 @@ pattern SimpleKeyChord k = ([], k)
 
 {- | modifier keys are keys that can be "held".
 
-the escape key is "pressed", not "held", it seems.
+NOTE the escape key tends to be "pressed", not "held", it seems.
 (possibly explains its behavior in your terminal emulator?)
 
 @alt@ is 'OptionModifier'.
 
 -}
 data Modifier
- = MetaModifier
- | HyperModifier
+ = MetaModifier  -- ^ fake modifier: Alt on Linux\/Windows, Command on OSX
+ | HyperModifier -- ^ fake modifier: Control on Linux\/Windows, Command on OSX
  | ControlModifier
  | OptionModifier --TODO rn Option Alt
  | ShiftModifier
@@ -339,9 +344,9 @@ platform-specific virtual-key-codes in the dependent packages:
 -}
 data Key
 
- = MetaKey -- ^ fake key: Alt on Linux/Windows, Command on OSX
- | HyperKey -- ^ fake key: Control on Linux/Windows, Command on OSX
--- Control/Command both have C/O/N
+ = MetaKey -- ^ fake key: Alt on Linux\/Windows, Command on OSX
+ | HyperKey -- ^ fake key: Control on Linux\/Windows, Command on OSX
+-- Control/Command both have C\/O\/N
 
  | ControlKey
  | CapsLockKey
@@ -449,7 +454,7 @@ modifier2key = \case
 makeFree ''WorkflowF
 -- th staging: the spilce can only access previous declarations
 
--- | @= 'traverse_' 'sendKeyChord\''@
+-- | @= 'traverse_' 'sendKeyChord''@
 sendKeySequence :: (MonadWorkflow m) => KeySequence -> m ()
 sendKeySequence = traverse_ sendKeyChord'
 

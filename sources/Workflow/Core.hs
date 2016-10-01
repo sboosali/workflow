@@ -1,4 +1,9 @@
-{-|
+{-| Automate keyboard\/mouse\/clipboard\/application interaction.
+
+the core types that define platform-diagnostic workflows,
+as well as helpers for parsing keychords and implementing backends.
+
+(see 'WorkflowF', 'MonadWorkflow', 'Key', 'press', 'WorkflowD')
 
 -}
 module Workflow.Core
