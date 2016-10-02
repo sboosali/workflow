@@ -20,6 +20,7 @@ import Numeric.Natural
 import Control.Monad.IO.Class
 import Control.Exception (bracket,bracket_)
 
+import Prelude.Spiros (todo,delayMilliseconds)
 
 {-
 ::  -> IO ()
@@ -40,17 +41,21 @@ setClipboard s = liftIO $ withCWString s c_SetClipboard
 
 --------------------------------------------------------------------------------
 
+-- @= 'sendText_byChar'@
+sendText :: (MonadIO m) => String -> m ()
+sendText = sendText_byChar
+
 {-| inserts some text into the current Application.
 
 char-by-char (one per event), no delay (between events).
 
 @
-sendText = 'traverse_' 'sendChar'
+= 'traverse_' 'sendChar'
 @
 
 -}
-sendText :: (MonadIO m) => String -> m ()
-sendText = traverse_ sendChar
+sendText_byChar :: (MonadIO m) => String -> m ()
+sendText_byChar = traverse_ sendChar
 
 {-| like 'sendText', interspersing a delay (in milliseconds)
 

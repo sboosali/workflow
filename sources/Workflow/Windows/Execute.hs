@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts, ViewPatterns #-}
+{-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts, ViewPatterns, RecordWildCards #-}
 {-|
 
 high-level bindings.
@@ -11,14 +11,81 @@ import Workflow.Windows.Constants
 import Workflow.Windows.Bindings as Win32
 import Workflow.Windows.Types
 import Workflow.Windows.Extra
-import Workflow.Types hiding (Application,URL)
+import Workflow.Core hiding (Application,URL,delayMilliseconds)
 
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
+import Data.Default.Class
 
 import Numeric.Natural
 import Control.Monad.IO.Class
 
+import Prelude.Spiros hiding (toInt)
+import Prelude()
+
+--------------------------------------------------------------------------------
+
+{-|
+
+All delays are in milliseconds.
+
+-}
+data WindowsWorkflowConfig = WindowsWorkflowConfig
+ { windowsHowToSendText :: HowToSendText
+ , windowsStepDelay     :: Natural
+ }
+ deriving (Show,Read,Eq,Ord,Data,Generic)
+instance NFData   WindowsWorkflowConfig
+instance Hashable WindowsWorkflowConfig
+
+-- | 'defaultWindowsWorkflowConfig'
+instance Default WindowsWorkflowConfig where
+   def = defaultWindowsWorkflowConfig
+
+{- | How to execute 'sendText'.
+
+Comparison:
+
+* SendTextByChar:
+* SendTextByClipboard:
+
+-}
+data HowToSendText = SendTextByChar
+-- SendTextByKey | SendTextByClipboard
+ deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+instance NFData   HowToSendText
+instance Hashable HowToSendText
+
+-- | 'defaultHowToSendText'
+instance Default HowToSendText where
+   def = defaultHowToSendText
+
+{-|@
+'windowsHowToSendText' = 'defaultWindowsHowToSendText'
+'windowsStepDelay'     = 'defaultWindowsStepDelay'
+@-}
+defaultWindowsWorkflowConfig :: WindowsWorkflowConfig
+defaultWindowsWorkflowConfig = WindowsWorkflowConfig{..}
+ where
+ windowsHowToSendText = defaultHowToSendText
+ windowsStepDelay     = defaultWindowsStepDelay
+
+{-|
+
+@
+= 'SendTextByKey'
+@-}
+defaultHowToSendText :: HowToSendText
+defaultHowToSendText = SendTextByChar
+
+{-| no delay.
+
+@=0@
+-}
+defaultWindowsStepDelay :: Natural
+defaultWindowsStepDelay = 0
+
+--------------------------------------------------------------------------------
 
 runWorkflow :: Workflow a -> IO a
 runWorkflow = runWorkflowT . toFreeT
@@ -48,28 +115,41 @@ runW = 'runWorkflowT' . getW
 
 -}
 runWorkflowT :: forall m a. (MonadIO m) => WorkflowT m a -> m a
-runWorkflowT = iterT go
+runWorkflowT = runWorkflowWithT def
+
+runWorkflowWithT :: forall m a. (MonadIO m) => WindowsWorkflowConfig -> WorkflowT m a -> m a
+runWorkflowWithT config@WindowsWorkflowConfig{..}
+   = _delay
+ >>> runWorkflowByT _dictionary
+
  where
- go :: WorkflowF (m a) -> m a
- go = \case
+ _dictionary = windowsWorkflowD config
+ _delay = case windowsStepDelay of
+   0 -> id -- optimization
+   t -> intersperseT (Delay (toInt t) ())  -- (`delay` is too general, requiring unnecessary constraints)
 
-  SendKeyChord    modifiers key k  -> sendKeyChord_Win32 modifiers key >> k
-  SendText        s k              -> Win32.sendText s >> k
-  -- TODO support Unicode by inserting "directly"
-  -- terminates because sendTextAsKeypresses is exclusively a sequence of SendKeyChord'es
-  -- TODO SendMouseClick  flags n button k ->
-  SendMouseClick    flags n button k -> clickMouse_Win32 flags n button >> k
-  SendMouseScroll   flags scroll n k -> scrollMouse_Win32 flags scroll n >> k
+{-|
 
-  GetClipboard    f                -> Win32.getClipboard >>= f
-  SetClipboard    s k              -> Win32.setClipboard s >> k
+-}
+windowsWorkflowD :: (MonadIO m) => WindowsWorkflowConfig -> WorkflowD m
+windowsWorkflowD WindowsWorkflowConfig{..} = WorkflowD{..} --TODO use delays
+ where
 
-  CurrentApplication f             -> Win32.currentApplication >>= (getApplication >>> f)
-  OpenApplication app k            -> Win32.openApplication (Application app) >> k
-  OpenURL         url k            -> Win32.openUrl (URL url) >> k
+ _sendText = case windowsHowToSendText of
+   SendTextByChar      -> Win32.sendText_byChar
+--   SendTextByClipboard -> Win32.sendText_byClipboard
 
-  Delay           t k              -> delayMilliseconds t >> k
- -- 1,000 µs is 1ms
+ _sendKeyChord = sendKeyChord_Win32
+
+ _sendMouseClick  = clickMouse_Win32
+ _sendMouseScroll = scrollMouse_Win32
+
+ _getClipboard = Win32.getClipboard
+ _setClipboard = Win32.setClipboard
+
+ _currentApplication = getApplication <$> Win32.currentApplication
+ _openApplication    = Application >>> Win32.openApplication
+ _openURL            = URL >>> Win32.openUrl
 
 -----------------------------------------------------------------------------------------
 

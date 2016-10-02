@@ -6,6 +6,8 @@ import Workflow.Windows.Extra
 
 import Data.StateVar
 
+import Prelude.Spiros (delayMilliseconds)
+
 reverseClipboard = do
  clipboard $~ reverse
 

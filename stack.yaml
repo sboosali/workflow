@@ -2,7 +2,11 @@ resolver: lts-6.1
 
 packages:
 - .
+- ../spiros
+
 - ../workflow-types
 
 extra-deps:
+- spiros-0.0.0
+
 - c-storable-deriving-0.1.3
