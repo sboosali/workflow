@@ -11,7 +11,9 @@ import Numeric.Natural
 
 {-| a function that can exectue any workflow, via IO.
 -}
-type ExecuteWorkflow = (forall n x. (MonadIO n) => WorkflowT n x -> n x)
+newtype ExecuteWorkflow = ExecuteWorkflow { getExecuteWorkflow ::
+ (forall n x. (MonadIO n) => WorkflowT n x -> n x)
+}
 
 {-| An explicit "typeclass dictionary" for interpreting a 'MonadWorkflow'.
 
@@ -126,4 +128,4 @@ delayMilliseconds :: (MonadIO m) => Int -> m ()
 delayMilliseconds = liftIO . threadDelay . (*1000)
 
 delaySeconds :: (MonadIO m) => Int -> m ()
-delaySeconds =  delayMilliseconds . (*1000)
+delaySeconds =  delayMilliseconds . (*1000) --TODO rm

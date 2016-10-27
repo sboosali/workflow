@@ -73,7 +73,7 @@ evalAction :: ExecuteWorkflow -> String -> Maybe (IO ())
 evalAction runWorkflow = parseAction >>> runAction runWorkflow
 
 runAction :: ExecuteWorkflow -> Action -> Maybe (IO ())
-runAction runWorkflow = \case
+runAction (ExecuteWorkflow runWorkflow) = \case
  Quit -> Nothing
  Help -> Just help
 
