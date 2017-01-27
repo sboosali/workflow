@@ -3,7 +3,7 @@ compiler: ghc-8.0
 
 nix:
   enable: true
-  pure: true
+  pure: false
   # or impure, so that xdg-open can open the default browser in a user's environment
   packages:
   - zlib

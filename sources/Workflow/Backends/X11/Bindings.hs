@@ -21,6 +21,7 @@ import Workflow.Backends.X11.Foreign
 
 import Workflow.Types
 import Text.Earley
+import Data.List.Split
 
 import Data.Word
 import System.Process
@@ -29,6 +30,9 @@ import System.Exit
 import Data.Monoid (All(..))
 import Data.Foldable (fold)
 import Numeric (showHex)
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import Control.Arrow
 
 import Prelude.Spiros
 import Prelude ()
@@ -143,21 +147,12 @@ setClipboard' s = do
 currentApplication' :: (MonadIO m) => m Application
 currentApplication' = unsafeRunShell $ do
   w' <- xdotool ["getactivewindow"]
-  w <- toMonadShell $ parseWindow w'
-  cs' <- xprop ["-notype", "WM_CLASS", "-id", show w] -- xdotool ["getwindowclass"] -- TODO "xdotool getwindowclass" doesn't exist
-  a <- toMonadShell $ parseApplication w cs'
-  return a
+  w <- toMonadShell $ parseWindowId' w'
+  cs <- getClassesFromWindow' w
+  let c = cs & listToMaybe & maybe "" id  -- pick first class, empty otherwise
+  return c
 
   where
-  
-  -- resolveWindow :: (MonadShell m) => WindowID -> m Application
-  -- resolveWindow w = do
-  --   todo
-
-  -- handle :: (MonadShell m) => String -> m Application
-  -- handle = do
-  --   let a = resolveWindow w    
-
   {-
 
   e.g. parse the following into "emacs":
@@ -165,42 +160,17 @@ currentApplication' = unsafeRunShell $ do
     WM_CLASS = "emacs", "Emacs"
 
   -}
-  parseApplication :: WindowID -> String -> Either ShellError Application
-  parseApplication w ts = maybe2either (ShellError 0 message) $ do --TODO hacky
-    t <- listToMaybe $ lines ts
-    cs <- parseWMClasses t
-    let c = cs & listToMaybe & maybe "" id  -- pick first class, empty otherwise
-    return c
+  parseWindowId' :: String -> Either ShellError WindowID 
+  parseWindowId' ss = maybe2either (ShellError 0 message) $ parseWindowId ss
     where
-    message = "[Workflow.X11.currentApplication] " <> show ts <> " didn't parse as a WM_CLASS" -- Show the string to escape new lines 
+    message = "[Workflow.X11.currentApplication] " <> show ss <> " didn't parse as a WindowID" -- Show the string to escape new lines 
 
 
-  -- {-
-
-  -- e.g. parse the following into "emacs":
-
-  --    0x1600014 "emacs@chez-sboo": ("emacs" "Emacs")  958x948+0+0  +0+0
-
-  -- -}
-  -- parseApplication :: WindowID -> String -> Either ShellError Application
-  -- parseApplication w0 ss = maybe2either (ShellError 0 message) $ do --TODO hacky
-  --   -- s <- listToMaybe $ lines ss
-  --   let w1 = asHex w0
-  --   let cs = [] -- If title has colons or escape quotes?
-  --   let c = maybe "" id . listToMaybe $ cs -- pick first class, empty otherwise
-  --   return c
-  --   where
-  --   y = "(has no name)"
-  --   asHex x = "0x" <> showHex x ""
-  --   message = "[Workflow.X11.currentApplication] " <> show ss <> " didn't parse as an Application" -- Show the string to escape new lines 
-
-  parseWindow :: String -> Either ShellError WindowID 
-  parseWindow ss = maybe2either (ShellError 0 message) $ do
+parseWindowId :: String -> Maybe WindowID 
+parseWindowId ss = do
     s <- listToMaybe $ lines ss
     i <- readMay s
     return i
-    where
-    message = "[Workflow.X11.currentApplication] " <> show ss <> " didn't parse as a WindowID" -- Show the string to escape new lines 
 
 {-
 $ sleep 1; xdotool getactivewindow
@@ -231,6 +201,9 @@ Just ["emacs", "Emacs"]
 >>> (traverse_.traverse) putStrLn $ parseWMClasses "WM_CLASS = \"\\\"\""
 "
 
+>>> parseWMClasses "WM_CLASS:  not found."
+Nothing
+
 -}
 parseWMClasses :: String -> Maybe [String]
 parseWMClasses = go
@@ -253,26 +226,130 @@ xAtomGrammar = do
     interweaveA :: Alternative f => f x -> f a -> f [a]
     interweaveA x a = (:) <$> a <*> many (x *> a)  -- intercalate f ( g) & asum
 
+{- |
+
+launchApplication ("chromium","chromium-browser")
+
+-}
+launchApplication :: (MonadIO m) => (ApplicationExecutable,ApplicationName) -> m ()
+launchApplication (e,a) = do
+  as <- getOpenApplications -- use getDesktopEnvironment
+  if a `Set.member` as
+  then focusApplication' a
+  else launchApplication' e
+
+-- openApplication' "chromium-browser"
 -- Assumes (often incorrectly) that the application's executable and its class are the same
 openApplication' :: (MonadIO m) => Application -> m ()
-openApplication' _t = do
-  todo 
--- link executable with class?
+openApplication' a = do
+  as <- getOpenApplications0 -- use getDesktopEnvironment
+  if a `elem` as
+  then focusApplication' a
+  else launchApplication' a
+{- link executable with class?
+
+WM_COMMAND(STRING) = { "emacs" }
+but lacked by the "true" (gotten from getactivewindow and that works with windowfocus) emacs window 
+
+"True Windows", like the true Emacs window and the single terminal window,  seem to have a 
+WM_STATE(WM_STATE):
+
+-}
 
 -- via class name
 focusApplication' :: (MonadIO m) => Application -> m ()
-focusApplication' _t = do
-  todo
+focusApplication' a = do
+  getWindowfromClass a >>= \case
+    Nothing -> nothing
+    Just w -> unsafeRunShell $ do
+      xdotool_ ["windowfocus", "--sync", show w]
+      xdotool_ ["windowactivate", "--sync", show w] -- NOTE otherwise, i can't click back to previous application until i click on the newly focused application at least once. TODO What does "activating" mean?
 
+-- which window from a class??
+getWindowfromClass :: (MonadIO m) => Application -> m (Maybe WindowID) 
+getWindowfromClass c = do -- hacky
+  desktop <- getDesktopEnvironment'
+  return$ Map.lookup c desktop
+  
+--getDesktopEnvironment' :: (MonadIO m) => m (Map ApplicationName (Set WindowID))
+getDesktopEnvironment' :: (MonadIO m) => m (Map ApplicationName WindowID)  
+getDesktopEnvironment' = do
+  wcs <- getDesktopEnvironment
+  let cws' = invertMap wcs
+  
+  let ws' = (Map.elems cws') & Set.unions & Set.toList -- fmap Set.fromList & Set.concat
+  wps' <- (ws' & traverse (\w -> (w,) <$> getWindowProperties w)) <&> Map.fromList -- (return &&& getWindowProperties)  
+  let ws = wps' & Map.filter (Map.member "WM_STATE") & Map.keysSet -- actual windows
+
+--  let cws = cws' & Map.map (Set.intersection ws) & Map.filter (/= Set.fromList []) & Map.map 
+  let cws = cws' & Map.map (Set.intersection ws > Set.toList) & Map.mapMaybeWithKey (const listToMaybe)
+  return cws
+--  where
+ 
+getOpenApplications ::  (MonadIO m) => m (Set ApplicationName)
+getOpenApplications = getDesktopEnvironment' <&> Map.keysSet
+  
+--isApplicationWindow = "WM_STATE"
+
+-- getDesktopEnvironment' :: (MonadIO m) => m (Map ApplicationName (Set WindowID))
+-- getDesktopEnvironment' = do
+--   wcs <- getDesktopEnvironment
+--   let cws' = invertMap wcs
+--   let ws' = (Map.elems cws') & Set.unions & Set.toList -- fmap Set.fromList & Set.concat
+--   wps' <- (ws' & traverse (\w -> (w,) <$> getWindowProperties w)) <&> Map.fromList -- (return &&& getWindowProperties)  
+--   let wps = wps' & Map.filter (Map.member "WM_STATE")
+--   cws <- Map.traverseWithKey go cws'
+--   return $ cws & Map.map id & Map.filter (/= Set.fromList [])
+--   where
+--   go = todo
+
+getDesktopEnvironment :: (MonadIO m) => m (Map WindowID [ApplicationName])
+getDesktopEnvironment = do
+  ws <- getWindows
+  css <- traverse getClassesFromWindow' ws
+  let wcs = Map.fromList $ zip ws css
+  return$ wcs
+
+--invertMap :: (Ord k, Monoid v) => Map k v -> Map v [k]
+invertMap :: (Ord k, Ord v) => Map k [v] -> Map v (Set k)  
+invertMap = Map.foldrWithKey' (\k vs m -> foldr (\v n -> Map.insertWith (Set.union) v (Set.singleton k) n) m vs) Map.empty
+  
 -- via executable name
 launchApplication' :: (MonadIO m) => Application -> m ()
 launchApplication' t = do  -- TODO nix pure hides other executables
-  unsafeRunShell $ execute_ t [] -- TODO on Linux, an application is launched via the executable name, but accessed via a class name.
+  -- unsafeRunShell $ execute_ t [] -- TODO on Linux, an application is launched via the executable name, but accessed via a class name.
 -- TODO is it free like with &d
+  sh' t
+-- disown to not hang
+
+{-
+/bin/sh: chromium-browser: command not found
+*** Exception: readCreateProcess: chromium-browser (exit 127): failed
+-}
 
 -- | Skipping anonymous windows and duplicates
-getOpenApplications ::  (MonadIO m) => m [ApplicationName]
-getOpenApplications = getOpenApplications' <&> (mapMaybe listToMaybe > nub)
+getOpenApplications0 :: (MonadIO m) => m [ApplicationName]
+getOpenApplications0 = getOpenApplications' <&> (mapMaybe listToMaybe > nub)
+
+getWindows :: (MonadIO m) => m [WindowID]
+getWindows = do
+  o <- sh "xdotool search '.*'"
+  return$ mapMaybe parseWindowId (lines o)
+
+type XKey = String --TODO
+type XValue = String--TODO
+type WindowProperties = Map XKey XValue
+
+getWindowProperties :: (MonadIO m) => WindowID -> m WindowProperties
+getWindowProperties w = unsafeRunShell$ do
+  o <- xprop ["-notype", "-id", show w] --TODO very hacky
+  let kvs = munge o
+  return$ Map.fromList kvs
+  where
+  munge = lines > filter (const True) > fmap (splitOneOf "=:" > list2pair) > catMaybes -- on = or on :
+  list2pair = \case
+    [x,y] -> Just (x,y)
+    _ -> Nothing
 
 {-
 
@@ -286,14 +363,65 @@ $ echo $?
 -}
 getOpenApplications' ::  (MonadIO m) => m [[ApplicationName]]
 getOpenApplications' = do
-  o <- sh "for WindowId in $(xdotool search '.*'); do xprop -notype 'WM_CLASS' -id $WindowId; done 2> /dev/null"
+  o <- sh "for WindowId in $(xdotool search '.*'); do xprop -notype 'WM_CLASS' -id $WindowId; done"
   return $ go o
   where
   go = lines > fmap (parseWMClasses > maybe [] id)
 
 openURL' :: (MonadIO m) => URL -> m ()
 openURL' t = do
-  unsafeRunShell $ xdgopen_ [t] -- TODO nix pure hides browser executables
+  unsafeRunShell $ xdgopen' [t] -- TODO nix pure hides browser executables
+  -- disown to not hang
+
+getClassesFromWindow' :: (MonadIO m) => WindowID -> m [ApplicationName]
+getClassesFromWindow' w = unsafeRunShell $ getClassesFromWindow w
+
+getClassesFromWindow :: (MonadShell m) => WindowID -> m [ApplicationName]
+getClassesFromWindow w = do
+  cs' <- xprop ["-notype", "WM_CLASS", "-id", show w] -- xdotool ["getwindowclass"] -- TODO "xdotool getwindowclass" doesn't exist
+  a <- toMonadShell $ parseClasses' cs'
+  return a
+
+  where
+  
+  -- resolveWindow :: (MonadShell m) => WindowID -> m Application
+  -- resolveWindow w = do
+  --   todo
+
+  -- handle :: (MonadShell m) => String -> m Application
+  -- handle = do
+  --   let a = resolveWindow w    
+
+  parseClasses' :: String -> Either ShellError [ApplicationName]
+  parseClasses' ts = maybe2either (ShellError 0 message) $ do --TODO hacky
+    t <- listToMaybe $ lines ts
+    cs <- go t
+    return cs
+    where
+    message = "[Workflow.X11.getClassesFromWindow] " <> show ts <> " didn't parse as a WM_CLASS" -- Show the string to escape new lines 
+    go = \case
+          "WM_CLASS:  not found." -> Just []
+          x -> parseWMClasses x
+
+
+  -- {-
+
+  -- e.g. parse the following into "emacs":
+
+  --    0x1600014 "emacs@chez-sboo": ("emacs" "Emacs")  958x948+0+0  +0+0
+
+  -- -}
+  -- parseApplication :: WindowID -> String -> Either ShellError Application
+  -- parseApplication w0 ss = maybe2either (ShellError 0 message) $ do --TODO hacky
+  --   -- s <- listToMaybe $ lines ss
+  --   let w1 = asHex w0
+  --   let cs = [] -- If title has colons or escape quotes?
+  --   let c = maybe "" id . listToMaybe $ cs -- pick first class, empty otherwise
+  --   return c
+  --   where
+  --   y = "(has no name)"
+  --   asHex x = "0x" <> showHex x ""
+  --   message = "[Workflow.X11.currentApplication] " <> show ss <> " didn't parse as an Application" -- Show the string to escape new lines 
 
 -------------------------------------------
 

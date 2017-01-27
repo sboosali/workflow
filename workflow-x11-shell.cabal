@@ -67,7 +67,7 @@ library
 
              , transformers
              , mtl
---              , containers
+             , containers
 --              , bytestring
 --              , stm
 --              , template-haskell
@@ -90,7 +90,7 @@ library
 --              , formatting
 --              , servant
              , Earley
---              , split
+             , split
 --              , interpolatedstring-perl6
 --              , wl-pprint-text
 --              , text

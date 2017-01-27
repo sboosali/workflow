@@ -73,6 +73,9 @@ xprop_ = execute_ "xprop"
 xdgopen_ :: (MonadShell m) => [String] -> m ()
 xdgopen_ = execute_ "xdg-open"
 
+xdgopen' :: (MonadShell m) => [String] -> m ()
+xdgopen' = execute' "xdg-open"
+
 xclip_ :: (MonadShell m) => [String] -> m ()
 xclip_ = execute_ "xclip"
 
@@ -100,8 +103,16 @@ xclipWith arguments theStdin = do
 ------------
 
 --raw :: (MonadShell m) => String -> m String
+sh_ :: (MonadIO m) => String -> m ()
+sh_ command = void$ sh command
+
+--raw :: (MonadShell m) => String -> m String
 sh :: (MonadIO m) => String -> m String
 sh command = io $ readCreateProcess (shell command) ""
+
+--Asynchronous I.e. nonblocking
+sh' :: (MonadIO m) => String -> m ()
+sh' = io . void . spawnCommand
 
 execute_ :: (MonadShell m) => String -> [String] -> m ()
 execute_ executable arguments = void $ execute executable arguments
@@ -116,6 +127,9 @@ execute executable arguments = do
    -- (ExitFailure _, _, stderr) -> throwError (i, stderr)
    
   return result
+
+execute' :: (MonadShell m) => String -> [String] -> m ()
+execute' executable arguments = io $ void $ spawnProcess executable arguments
 
 exitcode2byte :: ExitCode -> Word16
 exitcode2byte = \case
