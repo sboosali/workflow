@@ -1,13 +1,13 @@
-resolver: lts-7.14
-compiler: ghc-8.0
+resolver: lts-8.12
+compiler: ghc-8.0.2
 
 nix:
-  enable: true
+  # enable: true
   pure: true
   packages: []
-  # shell-file: shell.nix
 
 packages:
 - .
 
-extra-deps: []
+extra-deps: 
+- spiros-0.0.0

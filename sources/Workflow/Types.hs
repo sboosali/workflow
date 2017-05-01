@@ -1,5 +1,5 @@
 {-# LANGUAGE ConstraintKinds, FlexibleContexts, PatternSynonyms #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 -- {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 -- {-# OPTIONS_GHC -ddump-splices #-}
@@ -12,15 +12,10 @@ module Workflow.Types where
 import Workflow.Extra
 
 import Control.Monad.Trans.Free (FreeT)
-import Control.Comonad.Trans.Cofree (CofreeT)
--- import Control.Monad.Free.Church  (F)
 import           Control.Monad.Free          (MonadFree, Free, liftF)
-import           Control.Monad.Free.TH       (makeFree)
-import           Control.Comonad.Cofree (Cofree)
--- import Control.Comonad
+import qualified Data.Text as T -- TODO
 
-import Numeric.Natural
---import GHC.Exts
+import Data.Char
 
 --------------------------------------------------------------------------------
 {-$ WorkflowF
@@ -74,8 +69,8 @@ data WorkflowF k
  | GetClipboard                                     (Clipboard -> k)
  | SetClipboard       Clipboard                     k
 
- | CurrentApplication                               (Application -> k) -- ^ like getter
- | OpenApplication    Application                   k                  -- ^ like setter
+ | CurrentApplication                               (Application -> k) -- ^ like a getter.
+ | OpenApplication    Application                   k                  -- ^ idempotent. like a setter.
 
  --TODO | GetApplications ([Application] -> k)
 
@@ -89,6 +84,27 @@ data WorkflowF k
 
  deriving (Functor)
  -- deriving (Functor,Data)
+
+--------------------------------------------------------------------------------
+
+type ApplicationName = String
+type ApplicationExecutable = FilePath
+
+{-
+
+data Application = Application { applicationName :: ApplicationName, applicationExecutable :: ApplicationExecutable }
+
+ currentApplication :: m ApplicationName
+ openApplication :: Application -> m()
+
+ getOpenApplications :: m [ApplicationName] 
+ focusApplication :: ApplicationName -> m()
+ startApplication :: ApplicationExecutable -> m()
+
+-- with delay, if x was already open
+forall x. do; focusApplication x; y <- currentApplication; return$ x == y
+
+-}
 
 --------------------------------------------------------------------------------
 
@@ -330,6 +346,9 @@ data Modifier
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic)
 instance NFData Modifier
 
+-- | (really, a @Set@)
+type Modifiers = [Modifier]
+  
 {- | a "cross-platform" keyboard, that has:
 
 * all keys that exist on standard keyboards.
@@ -450,157 +469,63 @@ modifier2key = \case
  ControlModifier       -> ControlKey
  FunctionModifier      -> FunctionKey
 
---------------------------------------------------------------------------------
-makeFree ''WorkflowF
--- th staging: the spilce can only access previous declarations
+isModifierKey :: Key -> Maybe Modifier
+isModifierKey = \case
+ MetaKey          -> Just MetaModifier
+ HyperKey         -> Just HyperModifier
+ ShiftKey         -> Just ShiftModifier
+ OptionKey        -> Just OptionModifier
+ ControlKey       -> Just ControlModifier
+ FunctionKey      -> Just FunctionModifier
+ _ -> Nothing
 
--- | @= 'traverse_' 'sendKeyChord''@
-sendKeySequence :: (MonadWorkflow m) => KeySequence -> m ()
-sendKeySequence = traverse_ sendKeyChord'
+isAlphaNumKey :: Key -> Bool
+isAlphaNumKey x = isAlphabeticKey x || isNumericKey x
 
--- | uncurried 'sendKeyChord'
-sendKeyChord' :: (MonadWorkflow m) => KeyChord -> m ()
-sendKeyChord' (ms,k) = sendKeyChord ms k
+isAlphabeticKey :: Key -> Bool
+isAlphabeticKey = \case
+ AKey -> True
+ BKey -> True
+ CKey -> True
+ DKey -> True
+ EKey -> True
+ FKey -> True
+ GKey -> True
+ HKey -> True
+ IKey -> True
+ JKey -> True
+ KKey -> True
+ LKey -> True
+ MKey -> True
+ NKey -> True
+ OKey -> True
+ PKey -> True
+ QKey -> True
+ RKey -> True
+ SKey -> True
+ TKey -> True
+ UKey -> True
+ VKey -> True
+ WKey -> True
+ XKey -> True
+ YKey -> True
+ ZKey -> True
+ _ -> False
 
---------------------------------------------------------------------------------
+isNumericKey :: Key -> Bool
+isNumericKey = \case
+ ZeroKey -> True
+ OneKey -> True
+ TwoKey -> True
+ ThreeKey -> True
+ FourKey -> True
+ FiveKey -> True
+ SixKey -> True
+ SevenKey -> True
+ EightKey -> True
+ NineKey -> True
+ _ -> False
 
-fromWorkflows_ :: (MonadWorkflow m) => [Workflow_] -> m ()
-fromWorkflows_ = traverse_ (liftF . fromWorkflow_)
+displayKey :: Key -> String
+displayKey = show >>> (T.pack >>> T.stripSuffix "Key" >>> maybe (error "workflow-types:Workflow.Types.displayKey") id >>> T.unpack) >>> fmap toLower -- NOTE partial
 
-fromWorkflow_ :: Workflow_ -> WorkflowF ()
--- fromWorkflow_ :: (MonadWorkflow m) => Workflow_ -> m ()
-fromWorkflow_ = \case
-  SendKeyChord_    flags key      -> SendKeyChord     flags key      ()
-  SendText_        s              -> SendText         s              ()
-  SendMouseClick_  flags n button -> SendMouseClick   flags n button ()
-  SendMouseScroll_ flags scroll n -> SendMouseScroll  flags scroll n ()
-  SetClipboard_    s              -> SetClipboard     s              ()
-  OpenApplication_ app            -> OpenApplication  app            ()
-  OpenURL_         url            -> OpenURL          url            ()
-  Delay_           t              -> Delay            t              ()
-
---------------------------------------------------------------------------------
-{-$ CoWorkflowF
-
-provides generic helper functions for defining interpreters.
-
--}
-
-{-|
-
-Naming: induces a @CoMonad@, see
-<http://dlaing.org/cofun/posts/free_and_cofree.html>
-
-'WorkflowF', 'CoWorkflowF', and 'runWorkflowWithT' are analogous to:
-
-* @Either (a -> c) (b,c)@,
-"get an @a@, or set a @b@"
-* @((a,c), (b -> c))@,
-"a handler for the getting of an @a@, and a handler for the setting of a @b@"
-* @
-handle
- :: ((a,c), (b -> c))
- -> (Either (a -> c) (b,c))
- -> c
-handle (aHasBeenGotten, bHasBeenSet) = either TODO
-@
-
-background: see
-<http://dlaing.org/cofun/posts/free_and_cofree.html>
-
--}
-data CoWorkflowF k = CoWorkflowF
-   { _SendKeyChord       :: ([Modifier] -> Key -> k)
-   , _SendText           :: (String            -> k)
-
-   , _SendMouseClick     :: ([Modifier] -> Natural     -> MouseButton -> k)
-   , _SendMouseScroll    :: ([Modifier] -> MouseScroll -> Natural     -> k)
-
-   , _GetClipboard       :: (Clipboard  , k)
-   , _SetClipboard       :: (Clipboard -> k)
-
-   , _CurrentApplication :: (Application  , k)
-   , _OpenApplication    :: (Application -> k)
-
-   , _OpenURL            :: (URL -> k)
-
-   , _Delay              :: (MilliSeconds -> k)
-
-   } deriving (Functor)
-
-{-
-
-class (Functor f, Functor g) => Pairing f g where
- pair :: (a -> b -> r) -> (f a -> g b -> r)
-
-instance Pairing CoWorkflowF WorkflowF where
- pair :: (a -> b -> r) -> (CoWorkflowF a -> WorkflowF b -> r)
-
- pair u CoWorkflowF{..} = \case
-
-  GetClipboard f    -> let (s,a) = _getClipboard in
-                       u a (f s)
-
-  SetClipboard s b  -> u (_setClipboard s) b
-
-  ...
-
-
-  pairEffect :: (Pairing f g, Comonad w, Monad m)
-             => (a -> b -> r) -> CofreeT f w a -> FreeT g m b -> m r
-  pairEffect p s c = do
-
-
-
--}
-
-{-|
-
-e.g.
-
-@
-@
-
-expansion:
-
-@
-CoWorkflowT w a
-~
-CofreeT CoWorkflowF w a
-~
-w (CofreeF CoWorkflowF a (CofreeT CoWorkflowF w a))
-~
-w (a, CoWorkflowF (CofreeT CoWorkflowF w a))
-@
-
-since:
-
-@
-data CofreeT f w a = w (CofreeF f a (CofreeT f w a))
-@
-
--}
-type CoWorkflowT = CofreeT CoWorkflowF
-
-{-|
-
-expansion:
-
-@
-CoWorkflow a
-~
-Cofree CoWorkflowF a
-~
-(a, CoWorkflow (Cofree CoWorkflowF a))
-@
-
-since:
-
-@
-data Cofree f a = a :< f (Cofree f a)
-@
-
--}
-type CoWorkflow = Cofree CoWorkflowF
-
---------------------------------------------------------------------------------

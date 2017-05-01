@@ -8,15 +8,16 @@ as well as helpers for parsing keychords and implementing backends.
 -}
 module Workflow.Core
  ( module Workflow.Types
+ , module Workflow.Lens
  , module Workflow.Execute
  , module Workflow.Keys
  , module Workflow.Reexports
  )
  where
 import Workflow.Types
+import Workflow.Lens
 import Workflow.Execute
 import Workflow.Keys
-import Workflow.Reexports
 
 {-TODO (Doesn't work)
 
@@ -29,3 +30,4 @@ in their @build-depends@.
 import qualified Control.Monad.Catch ()
 
 -}
+import Workflow.Reexports
