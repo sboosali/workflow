@@ -83,8 +83,7 @@ library
   -- , parallel
 
 
--- $ stack build && stack exec -- workflow-pure-example
-executable workflow-pure-example
+executable example-workflow-pure
  hs-source-dirs:      executables
  main-is:             Main.hs
 
