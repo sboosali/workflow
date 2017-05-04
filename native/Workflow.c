@@ -139,6 +139,12 @@ wheel is {MOUSEEVENTF_WHEEL, MOUSEEVENTF_HWHEEL}
 
 direction is {+1, -1} i.e. {forwards, backwards} i.e. {towards you, away from you}
 
+TODO why isn't mouseData a signed INT?
+> DWORD
+> A 32-bit unsigned integer. The range is 0 through 4294967295 decimal.
+? This type is declared in IntSafe.h as follows:
+> typedef unsigned long DWORD;
+
 */
 UINT ScrollMouseWheel(DWORD wheel, DWORD direction, DWORD distance) {
 	// mouse_event(MOUSEEVENTF_WHEEL, 0, 0, direction * distance, 0);

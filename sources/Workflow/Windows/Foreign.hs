@@ -11,9 +11,9 @@ import Foreign.C.Types
 import Foreign.C.String (CWString)
 import Foreign.Ptr (Ptr)
 
-#include "calling_convention.h"
-
 #define SAFETY safe
+
+#include "calling_convention.h"
 
 {-
 

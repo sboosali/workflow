@@ -1,5 +1,15 @@
 {-# LANGUAGE OverloadedStrings, NegativeLiterals #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+
+{- | (Read the source)
+
+run with:
+
+@
+stack build && stack exec -- example-workflow-windows
+@
+
+-}
 module Workflow.Windows.Example where
 import Workflow.Windows
 import Workflow.Windows.Extra
@@ -58,6 +68,12 @@ main = do
  print =<< c_EnableDebugPriv -- doesnt seem to be necessary
 
  testVariables
+
+ delayMilliseconds 1000
+ scrollMouse MOUSEEVENTF_WHEEL 1 120 -- up (with my trackpad, "natural" scrolling disabled)
+ delayMilliseconds 1000
+ scrollMouse MOUSEEVENTF_WHEEL -1 60 -- down (with my trackpad, "natural" scrolling disabled)
+ -- NOTE `-1::DWORD` triggers a warning, but the overflow is expected by windows, and works.
 
  -- delayMilliseconds 4000
  --testWorkflow

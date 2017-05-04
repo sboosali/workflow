@@ -29,8 +29,8 @@ library
  default-extensions:  LambdaCase, DeriveDataTypeable, DeriveGeneric
 
  c-sources:        native/Workflow.c
- includes:         native/Workflow.h
- install-includes: native/Workflow.h
+ includes:         native/Workflow.h, native/calling_convention.h
+ install-includes: native/Workflow.h, native/calling_convention.h
  include-dirs:     native
 
  exposed-modules:
@@ -61,8 +61,8 @@ library
   , StateVar
   , data-default-class
 
--- $ stack build && stack exec workflow-windows-example
-executable workflow-windows-example
+-- $ stack build && stack exec -- example-workflow-windows
+executable example-workflow-windows
  hs-source-dirs:      executables
  main-is:             Main.hs
  default-language:    Haskell2010

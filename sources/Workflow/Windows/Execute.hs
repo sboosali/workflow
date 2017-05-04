@@ -9,9 +9,9 @@ Glue between "Workflow.Types" and "Workflow.Windows.Types".
 module Workflow.Windows.Execute where
 import Workflow.Windows.Constants
 import Workflow.Windows.Bindings as Win32
-import Workflow.Windows.Types
+import Workflow.Windows.Types as Win32
 import Workflow.Windows.Extra
-import Workflow.Core hiding (Application,URL,delayMilliseconds)
+import Workflow.Core hiding (Application,getApplication,URL,delayMilliseconds)
 
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
@@ -24,6 +24,9 @@ import Prelude.Spiros hiding (toInt)
 import Prelude()
 
 --------------------------------------------------------------------------------
+
+defaultWindowsExecuteWorkflow :: ExecuteWorkflow
+defaultWindowsExecuteWorkflow = ExecuteWorkflow (runWorkflowWithT defaultWindowsWorkflowConfig)
 
 {-|
 
@@ -147,7 +150,7 @@ windowsWorkflowD WindowsWorkflowConfig{..} = WorkflowD{..} --TODO use delays
  _getClipboard = Win32.getClipboard
  _setClipboard = Win32.setClipboard
 
- _currentApplication = getApplication <$> Win32.currentApplication
+ _currentApplication = Win32.getApplication <$> Win32.currentApplication
  _openApplication    = Application >>> Win32.openApplication
  _openURL            = URL >>> Win32.openUrl
 
