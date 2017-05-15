@@ -9,6 +9,8 @@ run with:
 stack build && stack exec -- example-workflow-windows
 @
 
+TODO is has segfaulted once, maybe while quickly switching applications?
+
 -}
 module Workflow.Windows.Example where
 import Workflow.Windows
@@ -16,13 +18,27 @@ import Workflow.Windows.Extra
 
 import Data.StateVar
 
+import System.Environment
 import Prelude.Spiros (delayMilliseconds)
 
-reverseClipboard = do
- clipboard $~ reverse
 
-moveCursorToTopLeft = do
- cursor $= POINT 0 0
+testText i j = do
+  putStrLn "\n- inserting text dupliecate characters, with and without a delay betwen each character ...\n"
+
+  putStrLn ""
+  let is = insertCharactersDelayingAdjacentDuplicates i j "hello"
+  print $ is
+  putStrLn $ displayCharacterInsertions is
+
+  delayMilliseconds 1000
+  sendTextByCharacterDelayingAdjacentDuplicates i j "abcdefghijklmnopqrtuvwxyzzzzzzzzzzzzzzzzzzzzzzzzzzz "
+
+  -- putStrLn "0ms"
+  --sendTextDelaying_byChar 0    "llama, hello" -- (0ms delay)"
+  -- putStrLn ">0ms"
+  -- delayMilliseconds 1000
+  -- sendTextDelaying_byChar i "abcdefghijklmnopqrtuvwxyzzzzzzzzzzzzzzzzzzzzzzzzzzz " -- (>0ms delay)"
+
 
 testVariables = do
   putStrLn "\n- vars...\n"
@@ -32,6 +48,12 @@ testVariables = do
 
   moveCursorToTopLeft
   print =<< get cursor
+
+reverseClipboard = do
+ clipboard $~ reverse
+
+moveCursorToTopLeft = do
+ cursor $= POINT 0 0
 
 {-
 stack build && stack exec workflow-windows-example
@@ -64,15 +86,22 @@ testWindow s = do
 main = do
  putStrLn "\nworkflow-windows-example...\n"
 
- putStr "\ndebug Privileges:"
- print =<< c_EnableDebugPriv -- doesnt seem to be necessary
+ -- putStr "\ndebug Privileges:"
+ -- print =<< c_EnableDebugPriv -- doesnt seem to be necessary
 
- testVariables
+ -- testVariables
 
- delayMilliseconds 1000
- scrollMouse MOUSEEVENTF_WHEEL 1 120 -- up (with my trackpad, "natural" scrolling disabled)
- delayMilliseconds 1000
- scrollMouse MOUSEEVENTF_WHEEL -1 60 -- down (with my trackpad, "natural" scrolling disabled)
+ --delayMilliseconds 1000
+ getArgs >>= go
+
+ where
+ go = \case
+   [i, j] -> testText (read i) (read j)
+
+ -- delayMilliseconds 1000
+ -- scrollMouse MOUSEEVENTF_WHEEL 1 120 -- up (with my trackpad, "natural" scrolling disabled)
+ -- delayMilliseconds 1000
+ -- scrollMouse MOUSEEVENTF_WHEEL -1 60 -- down (with my trackpad, "natural" scrolling disabled)
  -- NOTE `-1::DWORD` triggers a warning, but the overflow is expected by windows, and works.
 
  -- delayMilliseconds 4000

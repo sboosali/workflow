@@ -1,9 +1,11 @@
-{-# LANGUAGE ViewPatterns, RecordWildCards #-}
+{-# LANGUAGE ViewPatterns, RecordWildCards,  ScopedTypeVariables  #-}
 {-|
 
 medium-level bindings.
 
 (all derived in Haskell. TODO wat?)
+
+TODO problem : adjacent duplicate characters are *always* droped
 
 -}
 module Workflow.Windows.Bindings where
@@ -16,11 +18,9 @@ import Foreign
 import Foreign.C
 -- import Foreign.C.String
 import Data.Char
-import Numeric.Natural
-import Control.Monad.IO.Class
 import Control.Exception (bracket,bracket_)
 
-import Prelude.Spiros (todo,delayMilliseconds)
+import Prelude (error)
 
 {-
 ::  -> IO ()
@@ -57,16 +57,131 @@ char-by-char (one per event), no delay (between events).
 sendText_byChar :: (MonadIO m) => String -> m ()
 sendText_byChar = traverse_ sendChar
 
-{-| like 'sendText', interspersing a delay (in milliseconds)
+{-| like 'sendText', 'intersperse'-ing a delay (in milliseconds)
 
 -}
-sendTextDelaying :: (MonadIO m) => Int -> String -> m ()
-sendTextDelaying i = traverse_ (\c -> sendChar c >> delayMilliseconds i)
+sendTextDelaying_byChar :: (MonadIO m) => Int -> String -> m ()
+sendTextDelaying_byChar i = fmap sendChar > _interspersed i > sequence_
+  where
+  _interspersed = \case
+    0 -> id
+    j -> intersperse (delayMilliseconds j)
+  -- traverse_ (\c -> sendChar c >> delayMilliseconds i)
+  -- intersperse
 
+-------------------------------------------------------------------------------
+
+{-| a syntax tree that represents the insertion of the particular characters in some string.
+
+-}
+data CharacterInsertion = InsertCharacter Char | DelayMilliseconds Int
+  deriving (Show,Eq)
+
+{-| like 'sendText', 'intersperse'-ing two delays (in milliseconds): the second between
+adjacent duplicate characters, and the first between any other character pair.
+
+if the string has no adjacent duplicate characters, it's equivalent to 'sendTextDelaying_byChar'
+
+i.e. if @length (group s) == length s@, then
+@'sendTextDelayingDuplicates_byChar' i j s == 'sendTextDelaying_byChar' i s@
+
+e.g
+
+>>> group "hello"
+["h","e","ll","o"]
+
+-}
+sendTextByCharacterDelayingAdjacentDuplicates :: (MonadIO m) => Int -> Int -> String -> m ()
+sendTextByCharacterDelayingAdjacentDuplicates defaultDelay duplicateDelay
+  = insertCharactersDelayingAdjacentDuplicates defaultDelay duplicateDelay
+  > evaluateCharacterInsertions
+{-# SPECIALIZE sendTextByCharacterDelayingAdjacentDuplicates :: Int -> Int -> String -> IO () #-}
+
+-- sendTextDelayingDuplicates_byChar :: (MonadIO m) => Int -> Int -> String -> m ()
+-- sendTextDelayingDuplicates_byChar defaultDelay duplicateDelay =
+--   group > fmap (fmap sendChar > _delayed duplicateDelay > sequence_) > _delayed defaultDelay > sequence_
+--   where
+--   _delayed :: (MonadIO m) => Int -> [m ()] -> [m ()]
+--   _delayed = \case
+--     0 -> id
+--     j -> intersperse (delayMilliseconds j)
+-- {-# SPECIALIZE sendTextDelayingDuplicates_byChar :: Int -> Int -> String -> IO () #-}
+
+{-| build a syntax tree that represents the insertion of the particular characters in some string.
+
+e.g
+
+>>> group "hello"
+["h","e","ll","o"]
+
+>>> insertCharactersDelayingAdjacentDuplicates 0 30 "hello"
+[InsertCharacter 'h',InsertCharacter 'e',InsertCharacter 'l', DelayMilliseconds 30,InsertCharacter 'l',InsertCharacter 'o']
+
+>>> insertCharactersDelayingAdjacentDuplicates 1 30 "hello"
+[InsertCharacter 'h',DelayMilliseconds 1,InsertCharacter 'e',DelayMilliseconds 1,InsertCharacter 'l',DelayMilliseconds 40,InsertCharacter 'l',DelayMilliseconds 1,InsertCharacter 'o']
+
+-}
+insertCharactersDelayingAdjacentDuplicates :: Int -> Int -> String -> [CharacterInsertion]
+insertCharactersDelayingAdjacentDuplicates defaultDelay duplicateDelay
+  = group
+  > fmap ( fmap InsertCharacter
+         > intersperse (DelayMilliseconds duplicateDelay)
+         )
+  > intersperse [DelayMilliseconds defaultDelay]
+  > concat
+  > _optimize
+  where
+  _delayed :: Int -> [CharacterInsertion] -> [CharacterInsertion]
+  _delayed j = intersperse (DelayMilliseconds j)
+  _optimize :: [CharacterInsertion] -> [CharacterInsertion]
+  _optimize = filter (/= DelayMilliseconds 0)
+
+evaluateCharacterInsertions :: (MonadIO m) => [CharacterInsertion] -> m ()
+evaluateCharacterInsertions = traverse_ evaluateCharacterInsertion
+  where
+  evaluateCharacterInsertion = \case
+    InsertCharacter   c -> sendChar c
+    DelayMilliseconds i -> delayMilliseconds i
+
+{-| for debugging.
+
+>>> putStrLn $ displayCharacterInsertions (insertCharactersDelayingAdjacentDuplicates 1 30 "hello")
+'h' 1 'e' 1 'l' 30 'l' 1 'o'
+
+-}
+displayCharacterInsertions :: [CharacterInsertion] -> String
+displayCharacterInsertions
+  = fmap go
+  > intercalate " "
+  where
+  go = \case
+    InsertCharacter c -> show c
+    DelayMilliseconds i -> show i
+
+{-| send any character, including Unicode, to the active window.
+
+TODO verify Unicode
+
+-}
 sendChar :: (MonadIO m) => Char -> m ()
 sendChar c = liftIO $ do
- _ <- c_SendUnicodeChar ((CWchar . fromIntegral . ord) c) -- cast doesn't overflow, there are ~1,000,000 chars.
+ _ <- c_SendUnicodeChar (char2cwchar c)
  return ()
+
+-- | cast doesn't overflow, there are ~1,000,000 chars.
+char2cwchar :: Char -> CWchar
+char2cwchar = CWchar . fromIntegral . ord
+
+--------------------------------------------------------------------------------
+
+{-| inserts some text into the current Application.
+
+@
+@
+
+-}
+sendText_byKey  :: (MonadIO m) => String -> m ()
+sendText_byKey = error"sendText_byKey"
 
 --------------------------------------------------------------------------------
 
@@ -161,7 +276,7 @@ scrollMouse wheel direction distance = liftIO $ c_ScrollMouseWheel
 --------------------------------------------------------------------------------
 
 currentApplication :: (MonadIO m) => m Application
-currentApplication = Application <$> todo
+currentApplication = Application <$> error "currentApplication"
 
 {-|
 TODO windows "apps"

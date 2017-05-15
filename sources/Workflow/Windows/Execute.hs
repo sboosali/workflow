@@ -15,12 +15,8 @@ import Workflow.Core hiding (Application,getApplication,URL,delayMilliseconds)
 
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
-import Data.Default.Class
+--import Data.Default.Class
 
-import Numeric.Natural
-import Control.Monad.IO.Class
-
-import Prelude.Spiros hiding (toInt)
 import Prelude()
 
 --------------------------------------------------------------------------------
@@ -34,8 +30,10 @@ All delays are in milliseconds.
 
 -}
 data WindowsWorkflowConfig = WindowsWorkflowConfig
- { windowsHowToSendText :: HowToSendText
- , windowsStepDelay     :: Natural
+ { windowsHowToSendText  :: HowToSendText
+ , windowsStepDelay      :: Natural
+ , windowsCharacterDelay :: Natural
+ , windowsDuplicateCharacterDelay :: Natural
  }
  deriving (Show,Read,Eq,Ord,Data,Generic)
 instance NFData   WindowsWorkflowConfig
@@ -53,9 +51,8 @@ Comparison:
 * SendTextByClipboard:
 
 -}
-data HowToSendText = SendTextByChar
--- SendTextByKey | SendTextByClipboard
- deriving (Show,Read,Eq,Ord,Enum,Bounded,Data,Generic)
+data HowToSendText = SendTextByChar -- SendTextByKey -- SendTextByClipboard
+ deriving (Show,Read,Eq,Ord,Data,Generic) -- ,Enum,Bounded
 instance NFData   HowToSendText
 instance Hashable HowToSendText
 
@@ -70,13 +67,15 @@ instance Default HowToSendText where
 defaultWindowsWorkflowConfig :: WindowsWorkflowConfig
 defaultWindowsWorkflowConfig = WindowsWorkflowConfig{..}
  where
- windowsHowToSendText = defaultHowToSendText
- windowsStepDelay     = defaultWindowsStepDelay
+ windowsHowToSendText  = defaultHowToSendText
+ windowsStepDelay      = defaultWindowsStepDelay
+ windowsCharacterDelay = defaultWindowsCharacterDelay
+ windowsDuplicateCharacterDelay = defaultWindowsDuplicateCharacterDelay
 
 {-|
 
 @
-= 'SendTextByKey'
+= 'SendTextByChar'
 @-}
 defaultHowToSendText :: HowToSendText
 defaultHowToSendText = SendTextByChar
@@ -87,6 +86,28 @@ defaultHowToSendText = SendTextByChar
 -}
 defaultWindowsStepDelay :: Natural
 defaultWindowsStepDelay = 0
+
+{-| a brief delay.
+
+@=1@ms
+
+-}
+defaultWindowsCharacterDelay :: Natural
+defaultWindowsCharacterDelay = 1
+
+{-| a longer delay.
+
+@=35@ms
+
+10ms seems to be the minimum delay before which all duplicate characters are dropped.
+(all except the very first pair. e.g. "llama" works with no delay, while "hello" needs longer.)
+but it's unreliable.
+
+35ms seems to be a long enough delay.
+
+-}
+defaultWindowsDuplicateCharacterDelay :: Natural
+defaultWindowsDuplicateCharacterDelay = 35
 
 --------------------------------------------------------------------------------
 
@@ -139,7 +160,9 @@ windowsWorkflowD WindowsWorkflowConfig{..} = WorkflowD{..} --TODO use delays
  where
 
  _sendText = case windowsHowToSendText of
-   SendTextByChar      -> Win32.sendText_byChar
+   SendTextByChar      -> Win32.sendTextByCharacterDelayingAdjacentDuplicates (toInt windowsCharacterDelay) (toInt windowsDuplicateCharacterDelay)
+  --  SendTextByChar      -> Win32.sendTextDelaying_byChar (toInt defaultWindowsCharacterDelay)
+--   SendTextByKey       -> Win32.sendText_byKey
 --   SendTextByClipboard -> Win32.sendText_byClipboard
 
  _sendKeyChord = sendKeyChord_Win32
