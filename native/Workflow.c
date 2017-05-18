@@ -6,6 +6,7 @@
 
 // windows
 #include <windows.h>
+#include <stdio.h>
 
 // C
 #include <string.h>
@@ -54,12 +55,21 @@ UINT SendUnicodeChar(const wchar_t c) {
 	i.ki.dwExtraInfo = 0;
 	i.ki.wVk = 0;
 
+  // "INPUT_KEYBOARD supports nonkeyboard-input methods
+	// — such as handwriting recognition or voice recognition —
+	// as if it were text input by using the KEYEVENTF_UNICODE flag."
 	i.ki.dwFlags = KEYEVENTF_UNICODE; // Specify the key as a unicode character
 	i.ki.wScan = c; //
 	successes += SendInput(1, &i, sizeof(INPUT));
 
 	return successes;
 }
+
+/* "The virtual key value of a key may alter depending on the current keyboard
+layout or what other keys were pressed, but the scan code will always be the
+same."
+
+*/
 
 /*
 
@@ -196,3 +206,12 @@ BOOL EnableDebugPriv()
 
 	return wasAdjsuted;
 }
+
+/* conflicts with the Haskell programs main, I think 
+int main() {
+  printf("testing Windows workflows...\n");
+	SendUnicodeChar(97);
+  SendUnicodeChar(10); // here, at the lowest binding, the newline is dropped
+  return 0;
+}
+*/
