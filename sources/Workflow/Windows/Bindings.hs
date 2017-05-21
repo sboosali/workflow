@@ -1,4 +1,5 @@
 {-# LANGUAGE ViewPatterns, RecordWildCards,  ScopedTypeVariables  #-}
+{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 {-|
 
 medium-level bindings.
@@ -19,8 +20,17 @@ import Foreign.C
 -- import Foreign.C.String
 import Data.Char
 import Control.Exception (bracket,bracket_)
+import qualified Language.C.Inline as C
 
 import Prelude (error)
+
+C.include "<stdio.h>"
+C.include "<math.h>"
+
+testInlineC :: IO ()
+testInlineC = do
+   x <- [C.exp| int{ printf("Some number: %.2f\n", cos(0.5)) } |]
+   putStrLn $ show x ++ " characters printed."
 
 {-
 ::  -> IO ()
@@ -118,7 +128,7 @@ e.g
 [InsertCharacter 'h',InsertCharacter 'e',InsertCharacter 'l', DelayMilliseconds 30,InsertCharacter 'l',InsertCharacter 'o']
 
 >>> insertCharactersDelayingAdjacentDuplicates 1 30 "hello"
-[InsertCharacter 'h',DelayMilliseconds 1,InsertCharacter 'e',DelayMilliseconds 1,InsertCharacter 'l',DelayMilliseconds 40,InsertCharacter 'l',DelayMilliseconds 1,InsertCharacter 'o']
+[InsertCharacter 'h',DelayMilliseconds 1,InsertCharacter 'e',DelayMilliseconds 1,InsertCharacter 'l',DelayMilliseconds 30,InsertCharacter 'l',DelayMilliseconds 1,InsertCharacter 'o']
 
 -}
 insertCharactersDelayingAdjacentDuplicates :: Int -> Int -> String -> [CharacterInsertion]
@@ -141,6 +151,7 @@ evaluateCharacterInsertions = traverse_ evaluateCharacterInsertion
   where
   evaluateCharacterInsertion = \case
     InsertCharacter   c -> sendChar c
+    -- InsertKey k -> pressKey k
     DelayMilliseconds i -> delayMilliseconds i
 
 {-| for debugging.
@@ -156,6 +167,7 @@ displayCharacterInsertions
   where
   go = \case
     InsertCharacter c -> show c
+--     InsertKey k -> show k
     DelayMilliseconds i -> show i
 
 {-| send any character, including Unicode, to the active window.
@@ -174,11 +186,20 @@ char2cwchar = CWchar . fromIntegral . ord
 
 --------------------------------------------------------------------------------
 
+-- sendString :: (MonadIO m) => String -> m ()
+-- sendString s = liftIO $ withArrayLen s $ \size characters -> do
+--   inputs <- todo
+--   _ <- c_SendUnicodeString size characters inputs
+--   return ()
+
+--------------------------------------------------------------------------------
+
 {-| inserts some text into the current Application.
 
 @
 @
 
+TODO might work for the window of the virtual machine
 -}
 sendText_byKey  :: (MonadIO m) => String -> m ()
 sendText_byKey = error"sendText_byKey"
@@ -276,7 +297,7 @@ scrollMouse wheel direction distance = liftIO $ c_ScrollMouseWheel
 --------------------------------------------------------------------------------
 
 currentApplication :: (MonadIO m) => m Application
-currentApplication = Application <$> error "currentApplication"
+currentApplication = Application <$> error "currentApplication" -- TODO
 
 {-|
 TODO windows "apps"
@@ -304,6 +325,11 @@ getCursorPosition = liftIO $ getByReference c_GetCursorPos
 -}
 setCursorPosition :: (MonadIO m) => POINT -> m ()
 setCursorPosition (POINT x y) = liftIO $ do
+  c_SetCursorPos (CInt x) (CInt y)
+
+-- TODO
+setCursorPosition' :: (MonadIO m) => POINT -> m ()
+setCursorPosition' (POINT x y) = liftIO $ do
   c_SetCursorPos (CInt x) (CInt y)
 
 -------------------------------------------------------------------------

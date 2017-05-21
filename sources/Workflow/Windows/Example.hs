@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, NegativeLiterals #-}
+{-# LANGUAGE OverloadedStrings, NegativeLiterals, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
 
 {- | (Read the source)
@@ -21,6 +21,13 @@ import Data.StateVar
 import System.Environment
 import Prelude.Spiros (delayMilliseconds)
 
+
+testWhitespace i j = do -- originally didn't work
+  let is = insertCharactersDelayingAdjacentDuplicates i j "x\n\tx"
+  print $ is
+  putStrLn $ displayCharacterInsertions is
+  delayMilliseconds 1000
+  sendTextByCharacterDelayingAdjacentDuplicates i j "x\n\tx"
 
 testText i j = do
   putStrLn "\n- inserting text dupliecate characters, with and without a delay betwen each character ...\n"
@@ -91,12 +98,16 @@ main = do
 
  -- testVariables
 
+ testInlineC 
+
  --delayMilliseconds 1000
- getArgs >>= go
+ -- getArgs >>= go
 
  where
  go = \case
-   [i, j] -> testText (read i) (read j)
+   [read -> i, read -> j] -> do
+     -- testText i j
+     testWhitespace i j
 
  -- delayMilliseconds 1000
  -- scrollMouse MOUSEEVENTF_WHEEL 1 120 -- up (with my trackpad, "natural" scrolling disabled)

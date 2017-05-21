@@ -29,6 +29,8 @@ library
  default-extensions:  LambdaCase, DeriveDataTypeable, DeriveGeneric
 
  c-sources:        native/Workflow.c
+                   sources/Workflow/Windows/Bindings.c
+                   -- for inline-c  
  includes:         native/Workflow.h, native/calling_convention.h
  install-includes: native/Workflow.h, native/calling_convention.h
  include-dirs:     native
@@ -58,6 +60,9 @@ library
 
   -- minimal dependencies
   , c-storable-deriving
+  , inline-c
+  -- cabal repl is not supported, because the C code is not compiled and linked appropriately.
+
   , StateVar
   , data-default-class
 
