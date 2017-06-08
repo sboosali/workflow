@@ -98,7 +98,7 @@ main = do
 
  -- testVariables
 
- testInlineC 
+-- testInlineC 
 
  --delayMilliseconds 1000
  -- getArgs >>= go

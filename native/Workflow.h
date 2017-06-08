@@ -7,6 +7,9 @@ LPCTSTR GetClipboard();
 void    SetClipboard(LPCTSTR);
 
 UINT SendUnicodeChar(const wchar_t);
+UINT SendUnicodeString(const int length, LPCWSTR characters, LPINPUT inputs);
+size_t SizeOfInput();
+size_t SizeOfWideChar();
 
 UINT PressKeyDown(WORD);
 UINT PressKeyUp(WORD);

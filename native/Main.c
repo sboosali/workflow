@@ -53,16 +53,27 @@ don't work because
 ---
 
 */
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) {
+  //mainHotkey();
+  mainSizes();
+  return 0;
+}
+
+void mainSizes()
 {
-    BOOL b = RegisterHotKey(
+  printf("%d %d \n", sizeof(INPUT), sizeof(wchar_t));
+}
+
+void mainHotkey()
+{
+    BOOL b = RegisterHotKey( // registered globally!
         NULL,
         1,
         MOD_ALT, // | MOD_NOREPEAT,
         0x42);
     if (b)  //0x42 is 'b'
     {
-        printf("Hotkey 'ALT+b' registered, using MOD_NOREPEAT flag\n");
+        printf("Hotkey 'ALT+b' registered\n");
     }
 
     MSG msg = {0};
@@ -71,10 +82,10 @@ int main(int argc, char* argv[])
         if (msg.message == WM_HOTKEY)
         {
             printf("WM_HOTKEY received\n");
+        } else {
+          printf("other message received\n");
         }
     }
-
-    return 0;
 }
 
 // #define _UNICODE

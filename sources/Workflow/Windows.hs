@@ -21,6 +21,9 @@ module Workflow.Windows
  -- | @StateVar@s
  , module Workflow.Windows.Variables
 
+ -- | a long list of constants for Windows system error codes
+ , module Workflow.Windows.Error
+
  ) where
 import Workflow.Windows.Types
 import Workflow.Windows.Constants
@@ -28,3 +31,4 @@ import Workflow.Windows.Foreign
 import Workflow.Windows.Bindings
 import Workflow.Windows.Execute
 import Workflow.Windows.Variables
+import Workflow.Windows.Error

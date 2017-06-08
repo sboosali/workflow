@@ -1,5 +1,5 @@
 {-# LANGUAGE ViewPatterns, RecordWildCards,  ScopedTypeVariables  #-}
-{-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
+-- {-# LANGUAGE QuasiQuotes, TemplateHaskell #-}
 {-|
 
 medium-level bindings.
@@ -20,17 +20,24 @@ import Foreign.C
 -- import Foreign.C.String
 import Data.Char
 import Control.Exception (bracket,bracket_)
---import qualified Language.C.Inline as C
+-- import qualified Language.C.Inline as C
 
 import Prelude (error)
 
 -- C.include "<stdio.h>"
 -- C.include "<math.h>"
 --
--- testInlineC :: IO ()
--- testInlineC = do
+-- testC :: IO ()
+-- testC = do
 --    x <- [C.exp| int{ printf("Some number: %.2f\n", cos(0.5)) } |]
 --    putStrLn $ show x ++ " characters printed."
+
+{- NOTE linker error
+C:\Users\Spiros\haskell\workflow-windows\.stack-work\dist\ca59d0ab\build/libHSworkflow-windows-0.0.0-JkNiuiwdBwnB8AiM0TF83T.a(Bindings.o):fake:(.text+0x2e41): undefined reference to `inline_c_Workflow_Windows_Bindings_0_ac05247710c75b5f50e9eb3415cf5bbb5fb475e8'
+C:\Users\Spiros\haskell\workflow-windows\.stack-work\dist\ca59d0ab\build/libHSworkflow-windows-0.0.0-JkNiuiwdBwnB8AiM0TF83T.a(Bindings.o):fake:(.text+0x3fb9): undefined reference to `inline_c_Workflow_Windows_Bindings_0_ac05247710c75b5f50e9eb3415cf5bbb5fb475e8'
+collect2.exe: error: ld returned 1 exit status
+`gcc.exe' failed in phase `Linker'. (Exit code: 1)
+-}
 
 {-
 ::  -> IO ()
@@ -344,29 +351,8 @@ findWindow Window{..} = liftIO $ do
 getWindowRectangle :: (MonadIO m) => HWND -> m RECT
 getWindowRectangle (HWND w) = liftIO $ getByReference (c_GetWindowRect w)
 
-{-
-
-The error codes returned by a function are not part of the Windows API specification and can vary by operating system or device driver. For this reason, we cannot provide the complete list of error codes that can be returned by each function. There are also many functions whose documentation does not include even a partial list of error codes that can be returned.
-
-https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
-
--}
 getLastError :: (MonadIO m) => m SystemErrorCode
 getLastError = liftIO $ SystemErrorCode <$> c_GetLastError
-
-enableDebugPriv :: IO Bool
-enableDebugPriv = c_EnableDebugPriv <&> fromBOOL
-
--- getLastError >>= \case
---   ERROR_SUCCESS ->
---   ERROR_NOT_ALL_ASSIGNED ->
-
--- ERROR_SUCCESS
--- The function adjusted all specified privileges.
---
--- ERROR_NOT_ALL_ASSIGNED
--- The token does not have one or more of the privileges specified in the NewState parameter. The function may succeed with this error value even if no privileges were adjusted. The PreviousState parameter indicates the privileges that were adjusted.
-
 
 -------------------------------------------------------------------------
 

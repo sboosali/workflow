@@ -1,7 +1,11 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-| only exports @pattern@s -}
-module Workflow.Windows.Constants where
+module Workflow.Windows.Constants
+ ( module Workflow.Windows.Constants
+ , module Workflow.Windows.Error
+ ) where
 import Workflow.Windows.Types (MOUSEEVENTF,VK,SystemErrorCode)
+import Workflow.Windows.Error
 
 --------------------------------------------------------------------------------
 
@@ -685,10 +689,5 @@ pattern VK_OEM_CLEAR = 0xFE
 -- http://stackoverflow.com/questions/4718069/what-is-win32-virtual-key-code-0xff-used-for-and-is-it-documented-somewhere
 pattern VK_FN :: VK
 pattern VK_FN = 0xFF
-
---------------------------------------------------------------------------------
-
-pattern ERROR_INVALID_WINDOW_HANDLE :: SystemErrorCode
-pattern ERROR_INVALID_WINDOW_HANDLE = 1400
 
 --------------------------------------------------------------------------------

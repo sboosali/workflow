@@ -65,13 +65,57 @@ UINT SendUnicodeChar(const wchar_t c) {
 	return successes;
 }
 
+/* 40 */
+size_t SizeOfInput () {
+	return sizeof(INPUT); //LOL
+}
+
+/* 2 */
+size_t SizeOfWideChar () {
+	return sizeof(wchar_t);
+}
+
+/* we can't know which characters succeeded, we can only count the successes.
+
+the characters array is initialized, while the`inputs` is uninitialized.
+they both share the same length, `size`.
+
+SendUnicodeString(k, &cs, &is)
+
+*/
+UINT SendUnicodeString (const int length, LPCWSTR characters, LPINPUT inputs) {
+	UINT successes = 0;
+	int j;
+
+	for (int i = 0; i < length; i++) {
+		j = i * sizeof(INPUT); // =40
+		// identical initialization
+		inputs[j].type = INPUT_KEYBOARD;
+		inputs[j].ki.time = 0;
+		inputs[j].ki.dwExtraInfo = 0;
+		inputs[j].ki.wVk = 0;
+		inputs[j].ki.dwFlags = KEYEVENTF_UNICODE; // Specify the key as a unicode character
+		// differs per item
+		inputs[j].ki.wScan = characters[i * sizeof(wchar_t)]; // =2
+	}
+
+	successes += SendInput(length, inputs, sizeof(INPUT));
+	return successes;
+}
+
 /* "The virtual key value of a key may alter depending on the current keyboard
 layout or what other keys were pressed, but the scan code will always be the
 same."
 
 */
 
-/*
+/* depress a key
+
+
+TODO
+    //This let's you do a hardware scan instead of a virtual keypress
+    ip.ki.dwFlags = KEYEVENTF_SCANCODE;
+    ip.ki.wScan = 0x1E;  //Set a unicode character to use (A)
 
 */
 UINT PressKeyDown(WORD key) {
@@ -81,12 +125,12 @@ UINT PressKeyDown(WORD key) {
 	i.ki.time = 0;
 	i.ki.dwExtraInfo = 0;
 
-	i.ki.wVk = key;
 	i.ki.dwFlags = KEYEVENTF_KEYDOWN;
+	i.ki.wVk = key;
 	return SendInput(1, &i, sizeof(INPUT));
 }
 
-/*
+/* release a key
 
 */
 UINT PressKeyUp(WORD key) {
@@ -96,8 +140,8 @@ UINT PressKeyUp(WORD key) {
 	i.ki.time = 0;
 	i.ki.dwExtraInfo = 0;
 
-	i.ki.wVk = key;
 	i.ki.dwFlags = KEYEVENTF_KEYUP;
+	i.ki.wVk = key;
 	return SendInput(1, &i, sizeof(INPUT));
 }
 
@@ -186,6 +230,7 @@ HINSTANCE OpenUrl(LPCTSTR url) {
 }
 
 
+// If the function succeeds, the return value is nonzero. 
 BOOL EnableDebugPriv()
 {
 	HANDLE hToken;
@@ -207,7 +252,7 @@ BOOL EnableDebugPriv()
 	return wasAdjsuted;
 }
 
-/* conflicts with the Haskell programs main, I think 
+/* conflicts with the Haskell programs main, I think
 int main() {
   printf("testing Windows workflows...\n");
 	SendUnicodeChar(97);

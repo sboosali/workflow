@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveGeneric, RecordWildCards, EmptyDataDecls #-}
+{-# LANGUAGE StandaloneDeriving,  EmptyDataDecls, EmptyCase, GeneralizedNewtypeDeriving, DeriveDataTypeable, DeriveGeneric, RecordWildCards, EmptyDataDecls #-}
 {-|
 
 Uppercased types are
@@ -10,15 +10,19 @@ module Workflow.Windows.Types where
 import Workflow.Windows.Extra
 
 import Foreign.CStorable
+-- import Haskus.Format.Binary.Union
 
 import Foreign
 import Foreign.C.Types
 import Foreign.C.String
 import GHC.Exts
 import Data.Ix (Ix)
-
 --TODO foreign-var-0.1
 
+import Prelude(toEnum) -- partial
+import Prelude.Spiros
+
+-- | LPCWSTR stands for "Long Pointer to Constant Wide String".
 type LPCWSTR = CWString
 
 type WCHAR_T = CWchar
@@ -29,9 +33,19 @@ type WORD = Word16
 
 type DWORD = Word32
 
+type SIZE_T = Word64 -- TODO ??
+
 -- | (may overflow)
 toDWORD :: (Integral a) => a -> DWORD
 toDWORD = fromIntegral
+
+-- |
+-- >>> fromBOOL 0
+-- False
+--
+-- WARNING: partial
+fromBOOL :: BOOL -> Bool
+fromBOOL = toInteger > fromInteger > toEnum
 
 {-|
 
@@ -73,6 +87,66 @@ System Error Codes>
 -}
 newtype SystemErrorCode = SystemErrorCode DWORD
  deriving (Bounded, Enum, Eq, Integral, Data, Num, Ord, Read, Real, Show, Ix, FiniteBits, Bits, Storable)
+
+getSystemErrorCode :: SystemErrorCode -> DWORD
+getSystemErrorCode (SystemErrorCode n) = n
+
+{-|
+
+@
+union {
+  MOUSEINPUT    mi;
+  KEYBDINPUT    ki;
+  HARDWAREINPUT hi;
+};
+@
+
+@
+typedef struct tagINPUT {
+  DWORD type;
+  union {
+    MOUSEINPUT    mi;
+    KEYBDINPUT    ki;
+    HARDWAREINPUT hi;
+  };
+} INPUT, *PINPUT;
+@
+
+<https://msdn.microsoft.com/en-us/library/windows/desktop/ms646270(v=vs.85).aspx>
+
+@
+allocaBytes :: Int -> (Ptr a -> IO b) -> IO b
+@
+
+TODO https://github.com/haskus/haskus-system/blob/master/src/lib/Haskus/Format/Binary/Union.hs#L69
+
+-}
+data INPUT
+ = MOUSEINPUT_    MOUSEINPUT
+ | KEYBDINPUT_    KEYBDINPUT
+ | HARDWAREINPUT_ HARDWAREINPUT
+--   deriving (Show,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
+-- deriving instance Storable INPUT
+
+--(Union '[Word16, Word32, Word64])
+
+data MOUSEINPUT    = MOUSEINPUT
+data KEYBDINPUT    = KEYBDINPUT
+data HARDWAREINPUT = HARDWAREINPUT
+
+-- data INPUT
+--  deriving (Show,Read,Eq,Ord,Generic,Data)--,NFData,Semigroup,Monoid)
+--
+-- {-
+--
+-- mallocBytes :: Int -> IO (Ptr a)
+--
+-- -}
+-- instance Storable POINT where
+--  peek      _ =
+--  poke      _ _ = return()
+--  alignment _ = 4 -- TODO ??
+--  sizeOf    _ = sizeof_INPUT
 
 {-|
 
