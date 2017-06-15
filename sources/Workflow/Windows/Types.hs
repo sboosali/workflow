@@ -19,8 +19,8 @@ import GHC.Exts
 import Data.Ix (Ix)
 --TODO foreign-var-0.1
 
-import Prelude(toEnum) -- partial
-import Prelude.Spiros
+import Prelude(error) -- partial
+--import Prelude.Spiros
 
 -- | LPCWSTR stands for "Long Pointer to Constant Wide String".
 type LPCWSTR = CWString
@@ -41,11 +41,15 @@ toDWORD = fromIntegral
 
 -- |
 -- >>> fromBOOL 0
--- False
+-- True
 --
 -- WARNING: partial
 fromBOOL :: BOOL -> Bool
-fromBOOL = toInteger > fromInteger > toEnum
+fromBOOL = \case
+  0 -> True
+  1 -> False
+  i -> error $ "{workflow-windows:Workflow.Windows.Types.fromBOOL "++ show i ++"} is out of bounds "
+-- toInteger > fromInteger > \case
 
 {-|
 

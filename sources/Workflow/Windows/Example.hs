@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings, NegativeLiterals, ViewPatterns #-}
 {-# OPTIONS_GHC -fno-warn-missing-signatures #-}
+{-# OPTIONS_GHC -fno-warn-overflowed-literals -fno-warn-unused-local-binds -fno-warn-incomplete-patterns -fno-warn-unused-imports #-}
 
 {- | (Read the source)
 
@@ -23,11 +24,12 @@ import Prelude.Spiros (delayMilliseconds)
 
 
 testWhitespace i j = do -- originally didn't work
-  let is = insertCharactersDelayingAdjacentDuplicates i j "x\n\tx"
+  let is = insertCharactersDelayingAdjacentDuplicates i j "x\n\ty"
   print $ is
   putStrLn $ displayCharacterInsertions is
   delayMilliseconds 1000
-  sendTextByCharacterDelayingAdjacentDuplicates i j "x\n\tx"
+  sendTextByCharacterDelayingAdjacentDuplicates i j "x\n\ty"
+
 
 testText i j = do
   putStrLn "\n- inserting text dupliecate characters, with and without a delay betwen each character ...\n"
@@ -98,13 +100,14 @@ main = do
 
  -- testVariables
 
--- testInlineC 
+-- testInlineC
 
  --delayMilliseconds 1000
- -- getArgs >>= go
+ getArgs >>= go
 
  where
  go = \case
+   [] -> testWhitespace 1 30
    [read -> i, read -> j] -> do
      -- testText i j
      testWhitespace i j

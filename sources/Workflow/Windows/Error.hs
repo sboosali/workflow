@@ -3,10 +3,10 @@
 module Workflow.Windows.Error where
 import Workflow.Windows.Types (SystemErrorCode,getSystemErrorCode )
 
+import Data.Maybe(fromMaybe) 
+
 displaySystemErrorCode :: SystemErrorCode -> String
-displaySystemErrorCode e =  maybe d id $ displaySystemErrorCode' e
-  where
-  d = "SystemErrorCode " ++ show (getSystemErrorCode e)
+displaySystemErrorCode e = "SystemErrorCode " ++ fromMaybe (show (getSystemErrorCode e)) (displaySystemErrorCode' e)
 
 displaySystemErrorCode' :: SystemErrorCode -> Maybe String
 displaySystemErrorCode' ERROR_SUCCESS                                                            = Just "ERROR_SUCCESS"

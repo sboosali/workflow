@@ -12,7 +12,9 @@ TODO problem : adjacent duplicate characters are *always* droped
 module Workflow.Windows.Bindings where
 import Workflow.Windows.Types
 import Workflow.Windows.Extra
+import Workflow.Windows.Constants
 import Workflow.Windows.Foreign
+--import Workflow.Windows.Error
 -- import Workflow.Windows.Constants
 
 import Foreign
@@ -21,6 +23,7 @@ import Foreign.C
 import Data.Char
 import Control.Exception (bracket,bracket_)
 --import qualified Language.C.Inline as C
+import Numeric (showHex)
 
 import Prelude (error)
 
@@ -84,11 +87,20 @@ sendTextDelaying_byChar i = fmap sendChar > _interspersed i > sequence_
 {-| a syntax tree that represents the insertion of the particular characters in some string.
 
 -}
-data CharacterInsertion = InsertCharacter Char | DelayMilliseconds Int
-  deriving (Show,Eq)
+data CharacterInsertion
+ = InsertCharacter Char
+ | DelayMilliseconds Int
+ | PressKey VK
+ deriving (Show,Eq)
 
-{-| like 'sendText', 'intersperse'-ing two delays (in milliseconds): the second between
+{-| like 'sendText', but:
+
+* 'intersperse'-ing two delays (in milliseconds); the second between
 adjacent duplicate characters, and the first between any other character pair.
+* replacing some whitespace characters with keypresses; e.g.
+inserting the newline character with pressing the return key;
+this is a hack, for some reason they're silently dropped (i.e. the event "success")
+on my system for any application.
 
 if the string has no adjacent duplicate characters, it's equivalent to 'sendTextDelaying_byChar'
 
@@ -130,11 +142,14 @@ e.g
 >>> insertCharactersDelayingAdjacentDuplicates 1 30 "hello"
 [InsertCharacter 'h',DelayMilliseconds 1,InsertCharacter 'e',DelayMilliseconds 1,InsertCharacter 'l',DelayMilliseconds 30,InsertCharacter 'l',DelayMilliseconds 1,InsertCharacter 'o']
 
+>>> insertCharactersDelayingAdjacentDuplicates 0 0 "x\ny"
+[InsertCharacter 'x',PressKey (VK 13),InsertCharacter 'y']
+
 -}
 insertCharactersDelayingAdjacentDuplicates :: Int -> Int -> String -> [CharacterInsertion]
 insertCharactersDelayingAdjacentDuplicates defaultDelay duplicateDelay
   = group
-  > fmap ( fmap InsertCharacter
+  > fmap ( fmap _convert
          > intersperse (DelayMilliseconds duplicateDelay)
          )
   > intersperse [DelayMilliseconds defaultDelay]
@@ -145,6 +160,12 @@ insertCharactersDelayingAdjacentDuplicates defaultDelay duplicateDelay
   _delayed j = intersperse (DelayMilliseconds j)
   _optimize :: [CharacterInsertion] -> [CharacterInsertion]
   _optimize = filter (/= DelayMilliseconds 0)
+  _convert :: Char -> CharacterInsertion
+  _convert = \case
+    '\n' -> PressKey VK_RETURN
+    '\t' -> PressKey VK_TAB
+--     '\' -> PressKey VK_
+    c    -> InsertCharacter c
 
 evaluateCharacterInsertions :: (MonadIO m) => [CharacterInsertion] -> m ()
 evaluateCharacterInsertions = traverse_ evaluateCharacterInsertion
@@ -153,11 +174,12 @@ evaluateCharacterInsertions = traverse_ evaluateCharacterInsertion
     InsertCharacter   c -> sendChar c
     -- InsertKey k -> pressKey k
     DelayMilliseconds i -> delayMilliseconds i
+    PressKey          k -> pressKey k
 
 {-| for debugging.
 
->>> putStrLn $ displayCharacterInsertions (insertCharactersDelayingAdjacentDuplicates 1 30 "hello")
-'h' 1 'e' 1 'l' 30 'l' 1 'o'
+>>> putStrLn $ displayCharacterInsertions (insertCharactersDelayingAdjacentDuplicates 1 30 "hello\n")
+'h' 1 'e' 1 'l' 30 'l' 1 'o' 0xd
 
 -}
 displayCharacterInsertions :: [CharacterInsertion] -> String
@@ -169,6 +191,7 @@ displayCharacterInsertions
     InsertCharacter c -> show c
 --     InsertKey k -> show k
     DelayMilliseconds i -> show i
+    PressKey          k -> "0x" ++ showHex k ""
 
 {-| send any character, including Unicode, to the active window.
 
@@ -353,6 +376,12 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
 -}
 getLastError :: (MonadIO m) => m SystemErrorCode
 getLastError = liftIO $ SystemErrorCode <$> c_GetLastError
+
+displayLastError :: (MonadIO m) => m String
+displayLastError = displaySystemErrorCode <$> getLastError
+
+printLastError :: (MonadIO m) => m ()
+printLastError = liftIO $ displayLastError >>= putStrLn
 
 enableDebugPriv :: IO Bool
 enableDebugPriv = c_EnableDebugPriv <&> fromBOOL
