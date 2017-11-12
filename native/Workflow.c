@@ -7,6 +7,7 @@
 // windows
 #include <windows.h>
 #include <stdio.h>
+// #include <dxva2.h>
 
 // C
 #include <string.h>
@@ -230,7 +231,7 @@ HINSTANCE OpenUrl(LPCTSTR url) {
 }
 
 
-// If the function succeeds, the return value is nonzero. 
+// If the function succeeds, the return value is nonzero.
 BOOL EnableDebugPriv()
 {
 	HANDLE hToken;
@@ -260,3 +261,61 @@ int main() {
   return 0;
 }
 */
+
+/*
+
+Monitor Monitor Configuration Functions
+https://msdn.microsoft.com/en-us/library/ms775232.aspx
+https://msdn.microsoft.com/en-us/library/ms775249.aspx
+
+BOOL SetMonitorRedGreenOrBlueGain(
+  _In_  HANDLE hMonitor,
+  _In_  MC_GAIN_TYPE gtGainType,
+  _In_  DWORD dwNewGain
+);
+
+HMONITOR MonitorFromWindow(
+  _In_ HWND  hwnd,
+  _In_ DWORD dwFlags
+);
+
+BOOL GetPhysicalMonitorsFromHMONITOR(
+  _In_   HMONITOR hMonitor,
+  _In_   DWORD dwPhysicalMonitorArraySize,
+  _Out_  LPPHYSICAL_MONITOR pPhysicalMonitorArray
+);
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/dd692950(v=vs.85).aspx
+
+typedef enum _MC_GAIN_TYPE {
+  MC_RED_GAIN    = 0,
+  MC_GREEN_GAIN  = 1,
+  MC_BLUE_GAIN   = 2
+} MC_GAIN_TYPE;
+
+BOOL GetMonitorRedGreenOrBlueGain(
+  _In_   HANDLE hMonitor,
+  _In_   MC_GAIN_TYPE gtGainType,
+  _Out_  LPDWORD pdwMinimumGain,
+  _Out_  LPDWORD pdwCurrentGain,
+  _Out_  LPDWORD pdwMaximumGain
+);
+
+BOOL GetMonitorBrightness(
+  _In_   HANDLE hMonitor,
+  _Out_  LPDWORD pdwMinimumBrightness,
+  _Out_  LPDWORD pdwCurrentBrightness,
+  _Out_  LPDWORD pdwMaximumBrightness
+);
+
+SetMonitorColor(MC_RED_GAIN, MAXIMUM_RED);
+SetMonitorColor(MC_GREEN_GAIN, MINIMUM_GREEN);
+SetMonitorColor(MC_BLUE_GAIN, MINIMUM_BLUE);
+
+*/
+// BOOL SetMonitorColor( MC_GAIN_TYPE gtGainType, DWORD dwNewGain ) {
+// 	HWND hw = GetActiveWindow();
+// 	HMONITOR hm = MonitorFromWindow(hw,NULL);
+// 	HANDLE h =
+// 	SetMonitorRedGreenOrBlueGain(h)
+// }
