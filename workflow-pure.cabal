@@ -127,7 +127,7 @@ test-suite unittest
     base
   , workflow-pure
   , hspec ==2.2.*
-  , QuickCheck ==2.8.*
+--  , QuickCheck ==2.8.*
   -- , tasty
   -- , tasty-quickcheck
 
