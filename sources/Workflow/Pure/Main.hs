@@ -1,6 +1,6 @@
 module Workflow.Pure.Main where
 import Workflow.Pure
-import Workflow.Types
+import Workflow.Core
 
 {-
 stack build && stack exec -- workflow-pure-example

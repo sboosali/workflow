@@ -5,4 +5,6 @@ packages:
 - .
 - ../workflow-types
 
-extra-deps: []
+extra-deps:
+- workflow-types-0.0.0
+- spiros-0.0.0
