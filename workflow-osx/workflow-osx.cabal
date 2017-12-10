@@ -1,0 +1,167 @@
+name: workflow-osx
+version: 0.0.1
+
+author: Spiros Boosalis
+maintainer: samboosalis@gmail.com
+stability: experimental
+homepage: https://github.com/sboosali/workflow-osx#readme
+bug-reports: https://github.com/sboosali/workflow-osx/issues
+
+cabal-version: >=1.10
+build-type: Simple
+license: GPL-3
+license-file: LICENSE
+copyright: Copyright (C) 2016 Spiros M. Boosalis
+
+tested-with: GHC ==7.10.*
+
+category: Accessibility, Apple, Automation, Bindings, Desktop, FFI
+synopsis: a "Desktop Workflow" monad with Objective-C bindings
+description:
+  a \"Desktop Workflow\" monad with Objective-C bindings.
+  .
+  includes bindings to:
+  .
+  * press keys with modifiers
+  .
+  * get/set the clipboard
+  .
+  * launch/focus applications
+  .
+  * get the name of the current application
+  .
+  * open URLs
+  .
+  for example:
+  .
+  > -- | cut the currently highlighted region
+  > cut :: (MonadWorkflow m) => m String
+  > cut = do
+  >  sendKeyChord [CommandModifier] XKey
+  >  delay 250
+  >  getClipboard
+  .
+  > -- | transform the currently highlighted region, via the clipboard
+  > transformClipboard :: (MonadWorkflow m) => (String -> String) -> m ()
+  > transformClipboard f = do
+  >  contents <- cut
+  >  setClipboard (f contents)
+  >  sendKeyChord [CommandModifier] VKey
+  .
+  see @Workflow.OSX@ for several more examples
+  .
+  (if hackage won't build the docs, see them at <http://sboosali.github.io/documentation/workflow-osx/index.html>)
+  .
+  (this package is on hackage for convenience, but it's still a prerelease)
+  .
+
+-- * get the name of the current window
+-- * click the mouse
+
+
+extra-source-files:
+  README.md
+  native/workflow.h
+  native/Makefile
+
+source-repository head
+    type: git
+    location: https://github.com/sboosali/workflow-osx
+
+
+library
+    if !os(osx)
+       buildable: False
+
+    hs-source-dirs: sources
+
+    exposed-modules:
+                    Workflow.OSX
+                    Workflow.OSX.Types
+                    Workflow.OSX.Foreign
+                    Workflow.OSX.Bindings
+                    Workflow.OSX.Constants
+                    Workflow.OSX.Marshall
+                    Workflow.OSX.Execute
+                    Workflow.OSX.Screenshot
+
+    -- other-modules:
+                    Workflow.OSX.Extra
+                    Workflow.OSX.Example
+
+    build-depends:
+                  base >=4.7 && <5.0
+
+                , workflow-types
+                , workflow-extra
+
+                , mtl
+                , transformers
+                , filepath
+
+                , free
+                , exceptions
+
+                , deepseq
+                , hashable
+                , c-storable-deriving
+                , data-default-class
+
+                , turtle
+                , managed
+                , JuicyPixels
+                , string-conv
+
+    default-language:   Haskell2010
+    ghc-options:        -Wall
+    default-extensions: AutoDeriveTypeable, DeriveDataTypeable, DeriveFunctor, DeriveGeneric
+
+    include-dirs:     native
+    includes:         native/Workflow.h
+    install-includes: native/Workflow.h
+    c-sources:        native/Workflow.m
+
+    cc-options: -Wno-deprecated-declarations
+    --  the functionality I needed was found only in some deprecated APIs
+    ld-options: -ObjC
+    frameworks: Cocoa
+
+
+executable example-workflow-osx
+    if !os(osx)
+       buildable: False
+       -- without:
+       -- <command line>: cannot satisfy -package-id workflow-osx-0.0.1-inplace
+       --
+       -- with:
+       -- Package workflow-osx-0.0.1 can't be built on this system.
+
+    main-is:        Main.hs
+    hs-source-dirs: .
+
+    default-language: Haskell2010
+    ghc-options:      -Wall
+
+    build-depends:
+                  base >=4.7 && <5.0
+                , workflow-osx
+
+
+executable test-workflow-osx
+    if !os(osx)
+       buildable: False
+
+    main-is:        Workflow/OSX/CommandLine.hs
+    hs-source-dirs: executables
+
+    default-language: Haskell2010
+    ghc-options:      -Wall
+
+    build-depends:
+                  base >=4.7 && <5.0
+                , workflow-osx
+                , workflow-types
+                , data-default-class
+                , Earley
+
+
