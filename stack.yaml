@@ -4,4 +4,5 @@ compiler: ghc-8.0
 packages:
 - .
 
-extra-deps: []
+extra-deps: 
+- spiros-0.0.0

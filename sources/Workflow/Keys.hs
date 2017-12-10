@@ -1,7 +1,9 @@
+{-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module Workflow.Keys where --TODO mv to workflow-derived
-import Workflow.Types
 import Workflow.Extra
+import Workflow.Types
+import Workflow.Lens
 
 import Data.List.Split
 

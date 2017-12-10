@@ -35,6 +35,7 @@ library
  exposed-modules:
   Workflow.Core
   Workflow.Types
+  Workflow.Lens  
   Workflow.Execute
   Workflow.Keys
   Workflow.Reexports
@@ -42,28 +43,27 @@ library
  -- other-modules:
   Workflow.Extra
   Workflow.Example
-  Workflow.Parser
 
  build-depends:
     base >=4.7 && <5
+  , spiros
+
   , transformers
   , containers
 
-  , deepseq
-  , hashable
-  , semigroups
   , split
+  , text
+
+
   , free
-  , comonad
   , exceptions
 
-  , Earley
 
-
-executable workflow-types-example
+executable example-workflow-types
    main-is:             Main.hs
    hs-source-dirs:      executables
    default-language:    Haskell2010
    build-depends:
        base
      , workflow-types
+
