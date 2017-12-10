@@ -1,13 +1,6 @@
 resolver: lts-8.12
 compiler: ghc-8.0.2
 
-nix:
-  enable: true
-  pure: true
-  packages: []
-  # shell-file: shell.nix
-
-
 packages:
 - .
 - ../workflow-types
