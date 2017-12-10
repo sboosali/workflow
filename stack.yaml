@@ -1,0 +1,10 @@
+resolver: lts-8.12
+compiler: ghc-8.0.2
+
+packages:
+- .
+- ../workflow-types
+- ../spiros
+
+extra-deps:
+- spiros-0.0.0
