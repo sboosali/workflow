@@ -51,6 +51,7 @@ as the exceptions can always be caught, or not displayed.
 
 -}
 data WorkflowF k
+-- data WorkflowF k keyboard
  = SendKeyChord    [Modifier] Key                  k -- ^ press the 'Key' while the 'Modifier's are held down. sent to the current application.
  --TODO | SendKeyChordTo Application    [Modifier] Key                   k -- ^
  --TODO | SendKeyChordTo Window    [Modifier] Key                   k -- ^
