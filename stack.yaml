@@ -1,0 +1,14 @@
+resolver: lts-8.14
+compiler: ghc-8.0.2
+
+packages:
+- .
+#- ../spiros
+#- ../workflow-types
+
+extra-deps:
+- spiros-0.0.0
+- workflow-types-0.0.1
+- c-storable-deriving-0.1.3
+# - haskus-binary-0.6.0.0
+# - haskus-utils-0.6.0.0
