@@ -1,0 +1,10 @@
+resolver: nightly-2017-12-15
+
+packages:
+- workflow-types/
+- workflow-extra/
+- workflow-pure/
+- workflow-osx/
+
+extra-deps:
+- spiros-0.0.0

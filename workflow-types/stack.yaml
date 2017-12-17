@@ -1,8 +1,0 @@
-resolver: lts-7.5
-compiler: ghc-8.0
-
-packages:
-- .
-
-extra-deps: 
-- spiros-0.0.0
