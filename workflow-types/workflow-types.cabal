@@ -35,6 +35,7 @@ library
  exposed-modules:
   Workflow.Core
   Workflow.Types
+  Workflow.Class
   Workflow.Lens  
   Workflow.Execute
   Workflow.Keys
@@ -53,7 +54,6 @@ library
 
   , split
   , text
-
 
   , free
   , exceptions
