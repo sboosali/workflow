@@ -25,7 +25,7 @@ library
   -Wall
   -fno-warn-unticked-promoted-constructors
  default-extensions: AutoDeriveTypeable DeriveDataTypeable DeriveGeneric
-                     DeriveFunctor DeriveFoldable DeriveTraversable
+                     DeriveFunctor DeriveFoldable DeriveTraversable DeriveLift
                      LambdaCase EmptyDataDecls TypeOperators BangPatterns Arrows
                      MultiWayIf DoAndIfThenElse PostfixOperators TupleSections
                      MultiParamTypeClasses FlexibleContexts FlexibleInstances
@@ -47,13 +47,17 @@ library
 
  build-depends:
     base >=4.7 && <5
+  , template-haskell 
+
   , spiros
+  , enumerate
 
   , transformers
   , containers
 
   , split
   , text
+  , frisby
 
   , free
   , exceptions

@@ -4,7 +4,7 @@
 -}
 module Workflow.Derived where
 import Workflow.Derived.Extra
-import Workflow.Types
+import Workflow.Core 
 
 import Control.Monad.Trans.Free (intersperseT)
 -- import Control.Monad.Free
