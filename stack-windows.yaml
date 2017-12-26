@@ -1,11 +1,15 @@
 resolver: nightly-2017-12-15
 
 packages:
+
 - workflow-types/
 - workflow-extra/
 - workflow-pure/
+
 - workflow-windows/
 
 extra-deps:
 - spiros-0.0.0
+- enumerate-0.2.2
+
 - c-storable-deriving-0.1.3

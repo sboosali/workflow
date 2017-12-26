@@ -1,6 +1,6 @@
 {-# LANGUAGE NoImplicitPrelude, PackageImports #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving, DeriveAnyClass #-}
-{-# LANGUAGE PatternSynonyms, DerivingStrategies, DataKinds, UndecidableInstances #-}
+{-# LANGUAGE PatternSynonyms, DerivingStrategies, DataKinds, UndecidableInstances, GADTs, TypeApplications, RecordWildCards #-}
 
 {-|
 
@@ -11,15 +11,23 @@ import "enumerate" Enumerate
 
 import Data.Word (Word)
 import Data.String (IsString(..)) 
-import GHC.Exts (IsList(..))
+import GHC.Exts (IsList(..), coerce)
 import Control.Monad.Catch
+
+import Data.Hashable (Hashable(..),hashUsing)
+import Control.DeepSeq (NFData(..))
 
 import "spiros" Prelude.Spiros
 import Data.Semigroup -- Monoid 
 import "base"   Data.Ix (Ix(..)) -- TODO
 import "base"   Data.Bits (Bits(..),FiniteBits(..)) -- TODO
 import "base"   Prelude (Enum(..),error )
+import "base"   Data.Functor.Identity
+import "base" Data.List.NonEmpty 
 import Language.Haskell.TH.Syntax
+import qualified Data.Map as Map
+import qualified Data.Set as Set
+import Data.Proxy
 
 --------------------------------------------------------------------------------
 
@@ -248,7 +256,15 @@ data MouseScroll
 
 equivalently, a list of 'KeyBinding's, where conflicts are resolved via @f@.
 A conflict is when @KeyMapping@s are being merged,
-but the same 'KeySequence' is mapped to different @a@'s. 
+but the same 'KeySequence' is mapped to different @a@'s.
+
+specializations:
+
+@
+KeyMapping 'Last'     a
+KeyMapping 'First'    a
+KeyMapping 'Identity' a
+@ 
 
 for example, to resolve conflicts by shadowing use 'Last',
 which keeps the rightmost\/last action:
@@ -295,16 +311,33 @@ instance (Semigroup (f a)) => Semigroup (KeyMapping f a) where
 instance (Semigroup (f a)) => Monoid (KeyMapping f a) where
   mempty = KeyMapping mempty 
 
--- queryKeyBinding :: KeyMapping f a -> KeySequence -> Maybe (KeyBinding (f a)) 
--- queryKeyBinding (KeyMapping bindings) k = KeyBinding k <$> (Map.lookup k bindings <&> getIdentity) 
-
--- queryKeyBinding :: (Comonad f) => KeyMapping f a -> KeySequence -> Maybe (KeyBinding a) 
--- queryKeyBinding (KeyMapping bindings) k = KeyBinding k (Map.lookup k bindings & maybe mempty extract) 
+queryLastKeyBinding :: KeyMapping Last a -> KeySequence -> Maybe (KeyBinding a)
+queryLastKeyBinding = queryKeyBindingWith getLast 
 
 -- queryMonoidalKeyBinding :: (Monoid a) => KeyMapping Identity a -> KeySequence -> KeyBinding a 
+-- queryMonoidalKeyBinding km ks = queryKeyBindingWith runIdentity km ks & maybe mempty id  -- what is the empty keychord? 
+
+queryKeyBindingWith :: (f a -> a) -> KeyMapping f a -> KeySequence -> Maybe (KeyBinding a)
+queryKeyBindingWith extract km ks = queryKeyBinding km ks & (fmap.fmap) extract
+{-# SPECIALIZE queryKeyBindingWith :: (Last     a -> a) -> KeyMapping Last     a -> KeySequence -> Maybe (KeyBinding a) #-}
+{-# SPECIALIZE queryKeyBindingWith :: (First    a -> a) -> KeyMapping First    a -> KeySequence -> Maybe (KeyBinding a) #-}
+{-# SPECIALIZE queryKeyBindingWith :: (Identity a -> a) -> KeyMapping Identity a -> KeySequence -> Maybe (KeyBinding a) #-}
+
+queryKeyBinding :: KeyMapping f a -> KeySequence -> Maybe (KeyBinding (f a)) 
+queryKeyBinding (KeyMapping bindings) k = KeyBinding k <$> v
+  where
+  v = Map.lookup k bindings 
+{-# SPECIALIZE queryKeyBinding :: KeyMapping Identity (IO()) -> KeySequence -> Maybe (KeyBinding (Identity (IO()))) #-} 
+
+-- queryKeyBinding :: (Comonad f, Monoid a) => KeyMapping f a -> KeySequence -> KeyBinding a 
+-- queryKeyBinding (KeyMapping bindings) k = KeyBinding k v 
+--   where
+--   v = Map.findWith mempty k bindings & extract
+
+-- queryMonoidalKeyBinding :: (Comonad f, Monoid a) => KeyMapping Identity a -> KeySequence -> KeyBinding a 
 -- queryMonoidalKeyBinding (KeyMapping bindings) k = KeyBinding k v
-  -- where
-  -- v Map.findWith mempty k bindings & getIdentity 
+--   where
+--   v Map.findWith mempty k bindings & runIdentity 
 
 {-| Represents @a@ being bound to a keyboard shortcut.
 
@@ -313,7 +346,9 @@ Naming:
 
 -}
 data KeyBinding a = KeyBinding KeySequence a
- deriving (Show,Read,Eq,Ord,{- Data, -}Generic,NFData,Hashable) 
+ deriving (Show,Read,Eq,Ord,Data,Generic,NFData,Hashable)
+ deriving (Functor,Foldable,Traversable)
+ -- TODO Applicative? like Const, merging the key sequences somehow, either append or first/last (should still be associative, since First/Last are Monoids) 
 
 {-| a sequence of key chords make up a keyboard shortcut
 
@@ -330,8 +365,47 @@ instance IsString KeySequence where
 
 readKeySequence :: String -> KeySequence
 readKeySequence = todo
-
  
+{- | represents jointly\/simultaneously holding down the 'kcModifiers'
+while pressing the 'kcKey' down and back up.
+
+TODO a sequence, unordered and without duplicates,
+of keypresses make up a keychord.
+
+Naming: https://www.emacswiki.org/emacs/Chord
+
+-}
+data KeyChord = KeyChord
+ { kcModifiers :: Modifiers -- (Set Modifier) -- [Modifier]
+ , kcKey       :: Key
+ } deriving (Show,Read,Eq,Ord,Data) -- ,Generic) -- ,Hashable)
+
+instance NFData KeyChord where
+  rnf KeyChord{..} = rnf kcModifiers `seq` rnf kcKey `seq` ()
+
+instance Hashable KeyChord where
+  hashWithSalt = hashUsing tupleKeyChord
+
+instance Enumerable KeyChord where
+  enumerated = KeyChord <$> enumerated @Modifiers <*> enumerated @Key -- cross-product
+  cardinality _ = cardinality (Proxy @Modifiers) * cardinality (Proxy @Key) -- product
+   -- TODO is there some fancy way to do this, like the Applicative of Const Product, so I don't mess it up if I re-factor it
+  -- = KeyChord <$> cardinality (Proxy @Modifiers) * cardinality (Proxy @
+  
+-- data KeyChord = KeyChord (Set Modifier) (NonEmpty Key) 
+
+tupleKeyChord :: KeyChord -> (Modifiers, Key)
+tupleKeyChord KeyChord{..} = (kcModifiers,kcKey)
+
+readKeyChord :: String -> KeyChord
+readKeyChord = todo
+
+unmodifiedKeyChord :: Key -> KeyChord
+unmodifiedKeyChord = KeyChord mempty -- [k]
+
+-- pattern SimpleKeyChord :: Key -> KeyChord
+-- pattern SimpleKeyChord k = KeyChord Set.empty [k]   -- not a pattern 
+
 {-|
 
 (really, a @Set@)
@@ -339,15 +413,34 @@ readKeySequence = todo
 TODO are they unordered? no duplicates but with order.
 
 -}
-newtype Modifiers = Modifiers [Modifier]
- deriving stock   (Show, Read, Data) 
- deriving newtype (Eq,Ord,{- Data, -}IsList,Semigroup,Monoid,NFData,Hashable) -- ,Generic) Maps are not generic, they are abstract 
+newtype Modifiers = Modifiers { getModifiers :: Set Modifier } 
+ deriving stock   (Data)
+ deriving newtype (Show,Read) -- this ignores the accessor 
+ deriving newtype (Eq,Ord,IsList,Semigroup,Monoid,NFData) -- ,Generic) Maps are not generic, they are abstract 
+-- instance Enumerable Modifiers where 
+
+instance Hashable Modifiers where
+  -- hashWithSalt i (Modifiers ms) =
+  hashWithSalt = hashUsing (getModifiers > Set.toList) 
+
+instance Enumerable Modifiers where
+  enumerated = coerce (enumerated @(Set Modifier))
+  cardinality _ = cardinality (Proxy @(Set Modifier)) 
 
 instance IsString Modifiers where
-  fromString = readModifiers 
+  fromString = readModifiers
 
 readModifiers :: String -> Modifiers
 readModifiers = todo
+
+{-|
+
+e.g. @[XOptionModifier,XControlModifier,OptionModifier,ControlModifier]@ is equivalent to
+@[OptionModifier,ControlModifier]@, on any platform. 
+
+-}
+normalizeModifiers :: Modifiers -> Modifiers
+normalizeModifiers = todo -- the fake keys
 
 {-
 
@@ -357,37 +450,14 @@ readModifiers = todo
 
 -}
 
---------------------------------------------------------------------------------
+{- | platform-independent modifier keys.
 
-{- | represents simultaneously holding down all the modifiers
-while individually pressing each key down and back up.
-
-a sequence, unordered and without duplicates,
-of keypresses make up a keychord.
-
-Naming: https://www.emacswiki.org/emacs/Chord
-
--}
-data KeyChord = KeyChord [Modifier] [Key]
--- data KeyChord = KeyChord
---  { kcModifiers :: [Modifier]
---  , kcKeys      :: [Key]
---  }
-   deriving (Show,Read,Data,Generic)
-   deriving (Eq,Ord,NFData,Hashable)
-
-readKeyChord :: String -> KeyChord
-readKeyChord = todo
-
-pattern SimpleKeyChord :: Key -> KeyChord
-pattern SimpleKeyChord k = KeyChord [] [k]
-  
-{- | modifier keys are keys that can be "held".
+modifier keys are keys that can be "held".
 
 NOTE the escape key tends to be "pressed", not "held", it seems.
 (possibly explains its behavior in your terminal emulator?)
 
-@alt@ is 'OptionModifier'.
+@alt@ is 'OptionModifier', c.f. 'AltModifier.
 
 -}
 data Modifier
@@ -396,7 +466,101 @@ data Modifier
  | ControlModifier
  | OptionModifier --TODO rn Option Alt
  | ShiftModifier
- | FunctionModifier
+ -- TODO | FunctionModifier -- I don't think this is an actual modifier, the modification is at the hardware level 
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+pattern AltModifier :: Modifier 
+pattern AltModifier = OptionModifier
+
+{- | platform-dependent modifier keys. 
+
+-}
+data PlatformModifier
+ = ControlModifier'
+ | OptionModifier'
+ | ShiftModifier'
+ | CommandModifier' 
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+
+{- | all modifier keys, across every major platform. 
+
+
+reifyModifier :: platform SomeModifier -> SomeModifier
+
+
+-}
+data SomeModifier
+ = TheControlModifier
+ | TheOptionModifier
+ | TheShiftModifier
+ | TheCommandModifier
+ | TheWindowsModifier
+ deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+{-| 
+
+-}
+data LinuxModifier (modifier :: SomeModifier) where
+ LinuxControlModifier :: LinuxModifier 'TheControlModifier
+ LinuxOptionModifier  :: LinuxModifier 'TheOptionModifier 
+ LinuxShiftModifier   :: LinuxModifier 'TheShiftModifier
+ -- deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+-- data PlatformModifier
+--  = LinuxModifier   LinuxModifier
+--  | WindowsModifier LinuxModifier -- TODO the win-logo key; it's a mod, but not in many shortcuts anywyas
+--  | MacModifier     MacModifier
+--  deriving (Show,Read,Eq,Ord,Data,Generic,NFData,Hashable,Enumerable)
+
+-- data LinuxModifier
+--  = LinuxControlModifier
+--  | LinuxOptionModifier 
+--  | LinuxShiftModifier
+--  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+-- data LinuxModifier
+--  = LinuxControlModifier
+--  | LinuxOptionModifier 
+--  | LinuxShiftModifier
+--  | LinuxWindowsModifier
+--  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+-- data MacModifier
+--  = MacControlModifier
+--  | MacOptionModifier
+--  | MacShiftModifier
+--  | MacCommandModifier
+--  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
+
+fromPlatformModifier :: PlatformModifier -> Maybe Modifier
+fromPlatformModifier = \case 
+ ControlModifier' -> Just ControlModifier
+ OptionModifier'  -> Just OptionModifier
+ ShiftModifier'   -> Just ShiftModifier
+ CommandModifier' -> Nothing
+
+evaluateModifier :: KnownPlatform -> Modifier -> PlatformModifier
+evaluateModifier platform = \case 
+ XControlModifier -> evaluateXControlModifier platform
+ XOptionModifier  -> evaluateXOptionModifier  platform
+ ControlModifier  -> ControlModifier'
+ OptionModifier   -> OptionModifier'
+ ShiftModifier    -> ShiftModifier'
+ where
+ evaluateXControlModifier = \case
+   LinuxPlatform   -> ControlModifier'
+   WindowsPlatform -> ControlModifier'
+   MacPlatform     -> CommandModifier' 
+ evaluateXOptionModifier = \case
+   LinuxPlatform   -> OptionModifier'
+   WindowsPlatform -> OptionModifier'
+   MacPlatform     -> CommandModifier' 
+
+data KnownPlatform 
+   = LinuxPlatform   
+   | WindowsPlatform 
+   | MacPlatform     
  deriving (Show,Read,Eq,Ord,Bounded,Enum,Data,Generic,NFData,Hashable,Enumerable)
 
 --------------------------------------------------------------------------------
@@ -451,6 +615,7 @@ data Key
  = XOptionKey -- ^ fake key: Alt on Linux\/Windows, Command on OSX
  | XControlKey -- ^ fake key: Control on Linux\/Windows, Command on OSX
 -- Control\/Command both have C\/O\/N
+ -- TODO remove these fake keys ? or change the representation, like with a Boolean ;or a Either of "regular versus platform-specific" 
 
  | ControlKey
  | CapsLockKey
@@ -554,7 +719,7 @@ modifier2key = \case
  ShiftModifier         -> ShiftKey
  OptionModifier        -> OptionKey
  ControlModifier       -> ControlKey
- FunctionModifier      -> FunctionKey
+--  FunctionModifier      -> FunctionKey
 
 -- | Some keys are modifiers. 
 isModifierKey :: Key -> Maybe Modifier
@@ -565,7 +730,7 @@ isModifierKey = \case
  ShiftKey         -> Just ShiftModifier
  OptionKey        -> Just OptionModifier
  ControlKey       -> Just ControlModifier
- FunctionKey      -> Just FunctionModifier
+--  FunctionKey      -> Just FunctionModifier
  
  _                -> Nothing
 

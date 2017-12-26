@@ -47,17 +47,19 @@ library
 
  build-depends:
     base >=4.7 && <5
-  , template-haskell 
 
   , spiros
   , enumerate
 
+  , template-haskell 
+  , text
+  , hashable
+  , deepseq 
   , transformers
   , containers
 
   , split
-  , text
-  , frisby
+ -- , frisby
 
   , free
   , exceptions

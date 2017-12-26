@@ -1,4 +1,6 @@
 {-# LANGUAGE LambdaCase, ScopedTypeVariables, FlexibleContexts, ViewPatterns, RecordWildCards #-}
+{-# GHC_OPTIONS -fno-warn-overflowed-literals #-}  -- NOTE the (-1::Word) are intentional, for clarity 
+
 {-|
 
 high-level bindings.
@@ -11,7 +13,7 @@ import Workflow.Windows.Constants
 import Workflow.Windows.Bindings as Win32
 import Workflow.Windows.Types as Win32
 import Workflow.Windows.Extra
-import Workflow.Core hiding (Application,getApplication,URL,delayMilliseconds)
+import Workflow.Core hiding (Application,URL,delayMilliseconds) -- getApplication,
 
 import Control.Monad.Free
 import Control.Monad.Trans.Free hiding (Pure, Free, iterM) -- TODO
@@ -208,9 +210,9 @@ scrollMouse_Win32 modifiers (encodeMouseScroll -> (wheel, direction)) n
 encodeMouseScroll :: MouseScroll -> (MOUSEEVENTF, DWORD)
 encodeMouseScroll = \case
     ScrollTowards -> (MOUSEEVENTF_WHEEL,   1)
-    ScrollAway    -> (MOUSEEVENTF_WHEEL,  -1)
+    ScrollAway    -> (MOUSEEVENTF_WHEEL,  -1) -- NOTE intentional; Win32 expects an "negateable word" (i.e. it should be an int but isn't)
     ScrollRight   -> (MOUSEEVENTF_HWHEEL,  1)
-    ScrollLeft    -> (MOUSEEVENTF_HWHEEL, -1)
+    ScrollLeft    -> (MOUSEEVENTF_HWHEEL, -1) -- NOTE intentional
 
 {-|
 

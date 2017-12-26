@@ -4,7 +4,7 @@ module Workflow.Windows.Constants
  ( module Workflow.Windows.Constants
  , module Workflow.Windows.Error
  ) where
-import Workflow.Windows.Types (MOUSEEVENTF,VK,SystemErrorCode)
+import Workflow.Windows.Types (MOUSEEVENTF,VK) -- ,SystemErrorCode)
 import Workflow.Windows.Error
 
 --------------------------------------------------------------------------------

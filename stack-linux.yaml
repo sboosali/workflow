@@ -1,10 +1,18 @@
 resolver: nightly-2017-12-15
 
+nix:
+  enable: false # true 
+  packages:
+  - zlib
+
 packages:
+
 - workflow-types/
 - workflow-extra/
 - workflow-pure/
+
 - workflow-x11-shell/
 
 extra-deps:
 - spiros-0.0.0
+- enumerate-0.2.2
