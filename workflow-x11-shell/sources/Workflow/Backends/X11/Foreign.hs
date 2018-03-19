@@ -17,13 +17,13 @@ runShell $ xclipWith ["-selection", "clipboard"] "abc"
 module Workflow.Backends.X11.Foreign where
 import Workflow.Backends.X11.Extra
 
-import Control.Monad.Except
+--import Control.Monad.Except
 
-import Control.Exception (Exception,throwIO)
+--import Control.Exception (Exception,throwIO)
 import System.Process
 import System.Exit
 import System.IO
-import Data.Word
+--import Data.Word
 -- import Data.Maybe
 -- import Control.Exception (evaluate)
 import Prelude (error)

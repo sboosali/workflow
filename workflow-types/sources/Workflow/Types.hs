@@ -15,7 +15,7 @@ import Control.Monad.Trans.Free (FreeT)
 import           Control.Monad.Free          (MonadFree, Free) -- , liftF)
 import qualified Data.Text as T -- TODO
 
-import Data.Char
+--import Data.Char
 
 --------------------------------------------------------------------------------
 {-$ WorkflowF

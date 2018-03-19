@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE RecordWildCards, NamedFieldPuns #-}
 module Workflow.Keys where --TODO mv to workflow-derived
-import Workflow.Extra
+import Workflow.Extra hiding (init, last)
 import Workflow.Types
 import Workflow.Lens
 
@@ -9,6 +9,8 @@ import Data.List.Split
 
 import qualified Data.Map.Strict as Map
 import           Data.Map.Strict (Map)
+
+import Prelude (init, last)
 
 --------------------------------------------------------------------------------
 

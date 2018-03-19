@@ -14,7 +14,7 @@ You can statically ensure that these dependencies are installed by building the 
 
 -}
 module Workflow.Backends.X11.Bindings where
-import Workflow.Backends.X11.Extra
+import Workflow.Backends.X11.Extra hiding (list)
 import Workflow.Core
 --import Workflow.Backends.X11.Types
 import Workflow.Backends.X11.Foreign
@@ -34,7 +34,6 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Control.Arrow
 
-import Prelude.Spiros
 import Prelude ()
   
 --------------------------------------------------------

@@ -6,7 +6,7 @@ let
 
   f = import ./default.nix;
   ps = {
-    # spiros = ../spiros;
+    # spiros = ~/spiros; # TODO absolute
   };
 
   haskellPackages = if compiler == "default"

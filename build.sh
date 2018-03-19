@@ -1,1 +1,0 @@
-stack build --stack-yaml stack-linux.yaml -j4

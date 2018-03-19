@@ -21,7 +21,6 @@ extra-source-files:
   .gitignore
   .travis.yml
   HLint.hs
-  stack.yaml
 
 -- data-files:
 
@@ -62,8 +61,10 @@ library
 
  build-depends:
                base >=4.7 && <5
-             , spiros==0.0.*
-             , workflow-types==0.0.*
+
+             , spiros         >=0.2
+
+             , workflow-types ==0.0.*
 
              , transformers
              , mtl
@@ -149,18 +150,18 @@ test-suite unittest
   -- , tasty-quickcheck
 
 
--- $ stack bench
-benchmark command
- hs-source-dirs:      benchmarks
- main-is:             Bench.hs
- type:                exitcode-stdio-1.0
+-- -- $ stack bench
+-- benchmark command
+--  hs-source-dirs:      benchmarks
+--  main-is:             Bench.hs
+--  type:                exitcode-stdio-1.0
 
- default-language: Haskell2010
- ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
+--  default-language: Haskell2010
+--  ghc-options:      -Wall -threaded -rtsopts -with-rtsopts=-N
 
- build-depends:
-    base
-  , workflow-x11-shell
-  , criterion
-  , deepseq
+--  build-depends:
+--     base
+--   , workflow-x11-shell
+--   , criterion
+--   , deepseq
 

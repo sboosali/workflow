@@ -8,9 +8,9 @@ module Workflow.Extra
 import Control.Monad.Catch as X (MonadThrow(..))
 
 import Control.Exception (ErrorCall(..))
-import Control.Monad as X
+--import Control.Monad as X
 
-import Prelude.Spiros
+import Prelude.Spiros hiding (throwM)
 
 failed :: (MonadThrow m) => String -> m a
 failed = ErrorCall >>> throwM
