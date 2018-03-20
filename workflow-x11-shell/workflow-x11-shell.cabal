@@ -144,8 +144,8 @@ test-suite unittest
  build-depends:
     base
   , workflow-x11-shell
-  , hspec ==2.2.*
-  , QuickCheck ==2.8.*
+  , hspec      >=2.2
+  , QuickCheck >=2.8
   -- , tasty
   -- , tasty-quickcheck
 

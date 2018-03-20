@@ -48,7 +48,7 @@ library
  build-depends:
     base >=4.7 && <5
 
-  , spiros
+  , spiros    >=0.2
   , enumerate
 
   , template-haskell 

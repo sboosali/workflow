@@ -1,0 +1,1 @@
+/home/sboo/nix/haskell-project-nix/project.nix
