@@ -4,6 +4,8 @@ packages:
  ./workflow-extra/
  ./workflow-pure/
 
+ ./workflow-x11-shell/
+
 ----------------------------------------
 optional-packages: 
 
