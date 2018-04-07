@@ -4,8 +4,11 @@ ignore/
 enumerate/sources/Data/Canonical.hs
 result/
 result
+result-*
 
 # Haskell
+ghcid.txt
+*.local
 cabal.project.local
 dist-newstyle/
 dist
