@@ -1,0 +1,24 @@
+----------------------------------------
+packages:
+
+ ./workflow-types/
+ ./workflow-extra/
+ ./workflow-pure/
+
+ ./workflow-x11-shell/
+
+----------------------------------------
+optional-packages:
+
+ ../spiros/
+
+ -- ../enumerate/enumerate
+ -- ../enumerate/enumerate-function
+
+----------------------------------------
+
+with-compiler: /home/sboo/.nix-profile/bin/ghc-8.4.3
+               -- path is expanded and absolute
+               -- (i.e. no "~/" or "./").
+
+----------------------------------------

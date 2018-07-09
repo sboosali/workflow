@@ -5,7 +5,7 @@
 # - with a few other pacakges of mine as local dependencies
 # 
 ########################################
-resolver: lts-11.17                    # i.e. ghc-8.2
+resolver: lts-12.00                    # i.e. ghc-8.4
 
 allow-newer: true 
 

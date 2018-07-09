@@ -1,1 +1,0 @@
-stack --stack-yaml ./stack/spiros.yaml build

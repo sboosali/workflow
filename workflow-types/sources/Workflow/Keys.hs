@@ -159,7 +159,10 @@ instance NFData KeyChordSyntax
 -- | '<>' overrides (i.e. right-biased i.e. pick the last).
 instance Monoid KeyChordSyntax where
   mempty = KeyChordSyntax mempty mempty
-  mappend (KeyChordSyntax m1 k1) (KeyChordSyntax m2 k2) = KeyChordSyntax{..}
+  -- mappend
+
+instance Semigroup KeyChordSyntax where
+ (<>) (KeyChordSyntax m1 k1) (KeyChordSyntax m2 k2) = KeyChordSyntax{..}
    where
    modifierSyntax = Map.unionWith (curry snd) m1 m2
    keySyntax      = Map.unionWith (curry snd) k1 k2

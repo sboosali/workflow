@@ -3,12 +3,13 @@ ignore/
 enumerate/sources/Data/Canonical.hs
 
 # Haskell
-ghcid.txt
-*.local
 cabal.project.local
+*.local
+.ghc.environment.*
 dist-newstyle/
-dist
-cabal-dev
+dist/
+.stack-work/
+cabal-dev/
 *.o
 *.hi
 *.chi
@@ -19,8 +20,8 @@ cabal-dev
 cabal.sandbox.config
 cabal.config
 report.html
-.stack-work/
 .styx/
+ghcid.txt
 
 # Emacs
 \#*
