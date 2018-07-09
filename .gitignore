@@ -1,10 +1,6 @@
 # my
 ignore/
-.projectile
 enumerate/sources/Data/Canonical.hs
-result/
-result
-result-*
 
 # Haskell
 ghcid.txt
@@ -33,6 +29,12 @@ report.html
 \#*\#
 *.log
 TAGS
+.projectile
+
+# Nix
+result/
+result
+result-*/
 
 # OS X
 .DS_Store
