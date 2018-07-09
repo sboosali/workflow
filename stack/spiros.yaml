@@ -1,0 +1,52 @@
+# my local development configuration:
+#
+# - on Linux
+# - use Nix
+# - with a few other pacakges of mine as local dependencies
+# 
+########################################
+resolver: lts-11.17                    # i.e. ghc-8.2
+
+allow-newer: true 
+
+nix:
+  enable:   true 
+  packages:
+  - zlib
+
+########################################
+# flags:
+
+########################################
+packages:
+
+####################
+# PROJECT PACKAGES
+####################
+
+- ../workflow-types/
+- ../workflow-extra/
+- ../workflow-pure/
+
+# - ../workflow
+
+####################
+# LOCAL DEVELOPMENT PACKAGES
+####################
+
+- location:  ../../spiros
+  extra-dep: true
+  subdirs:   [.]
+
+- location: ../../enumerate
+  extra-dep: true
+  subdirs: 
+  - enumerate 
+  - enumerate-function 
+
+########################################
+extra-deps:
+
+- c-storable-deriving-0.1.3
+
+########################################

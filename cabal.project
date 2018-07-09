@@ -1,5 +1,10 @@
 ----------------------------------------
 packages:
+
+ --------------------
+ -- the "common" packages
+ --------------------
+
  ./workflow-types/
  ./workflow-extra/
  ./workflow-pure/
@@ -7,9 +12,17 @@ packages:
 ----------------------------------------
 optional-packages: 
 
+ --------------------
  -- my local dependencies
+ --------------------
+
  ../spiros/
  -- ../enumerate/enumerate
  -- ../enumerate/enumerate-function
+
+ --------------------
+ -- other local dependencies
+ --------------------
+
 
 ----------------------------------------

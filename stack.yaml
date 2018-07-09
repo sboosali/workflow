@@ -1,46 +1,42 @@
 ########################################
-
-resolver: lts-11.0
-
-# LTS Haskell 11.0 (ghc-8.2.2)
-# Published on 2018-03-12
+resolver: lts-11.17                    # i.e. ghc-8.2
 
 allow-newer: true 
 
-########################################
-
-nix:
-  enable: true
-  pure: true
-  packages:
-  - zlib
+# nix:
+#   enable:   true 
+#   packages:
+#   - zlib
 
 ########################################
+# flags:
 
+########################################
 packages:
+
 - workflow-types/
 - workflow-extra/
 - workflow-pure/
 
-- location:
-    ../spiros
-  extra-dep: true
-  subdirs: [.]
+# - workflow
 
-- location:			
-    ../enumerate
-  extra-dep: true
-  subdirs: 
-  - enumerate 
-  - enumerate-function 
-
+# - location:
+#     ../spiros
+#   extra-dep: true
+#   subdirs: [.]
+# - location:			
+#     ../enumerate
+#   extra-dep: true
+#   subdirs: 
+#   - enumerate 
+#   - enumerate-function 
 ########################################
-
 extra-deps:
+
 - c-storable-deriving-0.1.3
 
-#- spiros-0.0.0
-#- enumerate-0.2.2
+- spiros-0.2
+- enumerate-0.2.2
 
 # - frisby-0.2.2
 ########################################
