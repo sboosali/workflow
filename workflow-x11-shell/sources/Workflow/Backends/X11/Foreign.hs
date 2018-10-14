@@ -14,6 +14,7 @@ runShell $ xclipWith ["-selection", "clipboard"] "abc"
 @
 
 -}
+
 module Workflow.Backends.X11.Foreign where
 import Workflow.Backends.X11.Extra
 
